@@ -1,0 +1,10 @@
+# Secrets locaux
+.env
+
+# Éditeurs et système
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+	

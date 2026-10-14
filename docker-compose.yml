@@ -1,0 +1,50 @@
+services:
+  mysql:
+    container_name: some-mysql
+    image: mysql:5.7
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWD}
+    networks:
+      - prestashop_network
+    volumes:
+      - dbdata:/var/lib/mysql
+      
+  prestashop:
+    container_name: prestashop
+    image: prestashop/prestashop:8.2
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - 8080:80
+    environment:
+      DB_SERVER: some-mysql
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWD: ${DB_PASSWD}
+      PS_INSTALL_AUTO: 1
+      PS_DOMAIN: localhost:8080
+      PS_LANGUAGE: fr
+      PS_COUNTRY: fr
+      PS_DEV_MODE: 1
+      PS_FOLDER_ADMIN: admin1616
+      PS_FOLDER_INSTALL: install1616
+      ADMIN_MAIL: ${ADMIN_MAIL}
+      ADMIN_PASSWD: ${ADMIN_PASSWD}
+    networks:
+      - prestashop_network
+    volumes:
+      - psdata:/var/www/html
+      - ./themes/atelier/:/var/www/html/themes/atelier/
+      - ./modules/nk_clickcollect/:/var/www/html/modules/nk_clickcollect/
+
+networks:
+    prestashop_network:
+
+volumes:
+  psdata:
+  dbdata:
