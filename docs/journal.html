@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journal de bord</title>
+<script>document.documentElement.classList.add('js');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --desk: #d8cdbd;
+    --paper: #fbf7ee;
+    --ink: #2c2a35;
+    --ink-soft: #66606e;
+    --red: #c2412d;
+    --margin: rgba(214, 92, 92, .45);
+    --dot: rgba(60, 60, 90, .17);
+    --pink: rgba(223, 25, 149, .30);
+    --blue: rgba(124, 203, 232, .55);
+    --postit: #fff2a0;
+    --shadow: 0 1px 2px rgba(0,0,0,.08), 0 10px 30px rgba(60,40,20,.18);
+    --hand: "Caveat", "Segoe Print", cursive;
+    --note: "Patrick Hand", "Segoe Print", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --desk: #2a2420;
+      --paper: #efe6d3;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 40px rgba(0,0,0,.55);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--desk); color: var(--ink);
+    font: 18px/1.6 var(--note);
+  }
+
+  /* --- Le carnet : une pile de pages --- */
+  .book { max-width: 900px; margin: 32px auto 0; display: grid; gap: 28px; }
+
+  /* --- Une page : papier pointillé, marge rouge, trous de reliure, numéro --- */
+  /* Trous et marge sont attachés à la feuille (scroll), les points suivent le texte (local) quand il défile. */
+  .page {
+    position: relative; padding: 44px 44px 0 92px;
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 29px 22px, var(--desk) 7px, rgba(0,0,0,.12) 8px, transparent 9px),
+      linear-gradient(90deg, transparent 70px, var(--margin) 70px, var(--margin) 72px, transparent 72px),
+      radial-gradient(var(--dot) 1.1px, transparent 1.4px);
+    background-size: 58px 44px, 100% 100%, 22px 22px;
+    background-repeat: repeat-y, no-repeat, repeat;
+    background-position: 0 2px, 0 0, 0 0;
+    background-attachment: scroll, scroll, local;
+    border-radius: 4px 10px 10px 4px; box-shadow: var(--shadow);
+  }
+  /* Numéro de page : dernier élément de la feuille, poussé tout en bas (margin-top: auto). */
+  .page::after {
+    content: "— " attr(data-num) " —"; display: block; flex-shrink: 0;
+    margin: auto -24px 0 auto; padding: 24px 0 16px;
+    font: 700 1.3rem var(--hand); color: var(--ink-soft);
+  }
+
+  /* --- Avec JavaScript : une seule page visible, empilée au même endroit --- */
+  .js .book { gap: 0; }
+  /* Toutes les pages ont la même hauteur (l'écran moins la barre du bas) ; le surplus défile dans la feuille. */
+  .js .page {
+    display: none; grid-area: 1 / 1; backface-visibility: hidden;
+    height: max(480px, calc(100vh - 110px)); height: max(480px, calc(100dvh - 110px));
+    overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ink-soft) transparent;
+  }
+  .js .page.current { display: flex; flex-direction: column; }
+  .js .page > * { flex-shrink: 0; }
+  .js .page > .tape { align-self: flex-start; }
+  .page.out, .page.in { z-index: 2; transform-origin: left center; box-shadow: -12px 0 40px rgba(0,0,0,.28); }
+  .page.out { animation: page-out .6s ease-in forwards; }
+  .page.in { animation: page-in .6s ease-out; }
+  @keyframes page-out { to { transform: perspective(2400px) rotateY(-100deg); } }
+  @keyframes page-in { from { transform: perspective(2400px) rotateY(-100deg); } }
+
+  h1, h2, h3, .hand { font-family: var(--hand); font-weight: 700; }
+  code {
+    font: .78em ui-monospace, Menlo, Consolas, monospace; background: rgba(44,42,53,.06);
+    border-radius: 3px; padding: 1px 4px; overflow-wrap: anywhere;
+  }
+  .js-only { display: none; }
+  .js .js-only { display: block; }
+
+  /* --- Couverture --- */
+  .cover { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .cover::after { align-self: flex-end; margin-top: 0; }
+  .cover > :first-child { margin-top: auto; }
+  .cover > .js-only { margin-bottom: auto; }
+  .sticker {
+    width: 150px; height: 150px; border-radius: 50%; border: 6px solid #fff; background: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,.25); transform: rotate(-8deg);
+  }
+  .cover h1 { margin: 28px 0 0; font-size: 4.4rem; line-height: 1; }
+  .hl { background: linear-gradient(transparent 55%, var(--blue) 55%, var(--blue) 90%, transparent 90%); }
+  .cover .sub { margin: 12px 0 0; color: var(--ink-soft); font-size: 1.1rem; }
+  .cover .legend { margin: 28px auto 0; max-width: 520px; font-size: .95rem; color: var(--ink-soft); }
+  .toc { margin: 18px 0 0; padding: 0; list-style: none; font: 700 1.5rem/1.7 var(--hand); }
+  .toc a { color: var(--ink); text-decoration: none; border-bottom: 2px dashed var(--ink-soft); }
+  .hint { margin: 22px 0 0; font-size: .9rem; color: var(--ink-soft); }
+
+  /* --- Titres : ruban adhésif --- */
+  .tape {
+    display: inline-block; margin: 0 0 22px; padding: 2px 22px; font-size: 2.2rem;
+    background: var(--pink); transform: rotate(-1.5deg);
+    clip-path: polygon(2% 0, 98% 4%, 100% 96%, 0 100%);
+  }
+  .tape.blue { background: var(--blue); transform: rotate(-1deg); clip-path: polygon(0 6%, 100% 0, 98% 100%, 3% 94%); }
+
+  /* --- Feuille de route --- */
+  .progress { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .bar { flex: 1; height: 18px; border: 2px solid var(--ink); border-radius: 9px 7px 10px 6px; overflow: hidden; }
+  .bar span {
+    display: block; height: 100%; width: 0;
+    background: repeating-linear-gradient(-45deg, var(--ink) 0 2px, transparent 2px 6px);
+  }
+  .progress .hand { font-size: 1.5rem; white-space: nowrap; }
+  .phases { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 30px 34px; }
+  .phase h3 { margin: 0; font-size: 1.6rem; line-height: 1.2; }
+  .phase .meta { margin: 0 0 8px; font-size: .9rem; color: var(--ink-soft); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .stamp {
+    font: 700 .72rem/1 system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase;
+    border: 2px solid currentColor; border-radius: 4px; padding: 3px 6px; transform: rotate(-4deg);
+  }
+  .stamp.todo { color: var(--ink-soft); }
+  .stamp.doing { color: #b07a10; }
+  .stamp.done { color: var(--red); }
+  .tasks { list-style: none; margin: 0; padding: 0; }
+  .task { position: relative; padding: 2px 0 2px 32px; }
+  .task::before {
+    content: ""; position: absolute; left: 4px; top: 8px; width: 15px; height: 15px;
+    border: 2px solid var(--ink); border-radius: 3px 2px 4px 2px; transform: rotate(-2deg);
+  }
+  .task.done { color: var(--ink-soft); }
+  .task.done::after {
+    content: "✓"; position: absolute; left: 4px; top: -1px; font: 700 1.7rem/1 var(--hand); color: var(--red);
+  }
+  .proof { font-size: .8rem; }
+  .optional { font-size: .9rem; color: var(--ink-soft); font-style: italic; }
+
+  /* --- Pages du journal --- */
+  .day > .meta { margin: 0 0 10px; color: var(--ink-soft); font-size: .95rem; }
+  .day h4 { margin: 16px 0 4px; font: 700 1.45rem/1.2 var(--hand); color: var(--red); }
+  .day ul { margin: 0; padding-left: 22px; }
+  .day li { margin: 2px 0; }
+  .postit {
+    margin: 18px 0 6px; padding: 6px 20px 14px; background: var(--postit); color: #2c2a35;
+    box-shadow: 0 6px 14px rgba(0,0,0,.14); transform: rotate(-.6deg); max-width: 640px;
+  }
+  .postit h4 { margin-top: 6px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+  .avis { border-left: 3px solid var(--blue); padding-left: 14px; }
+  .err { color: var(--red); font-weight: 700; }
+  .ok { color: #2f6b3a; font-weight: 700; }
+  .todo-text { color: var(--ink-soft); font-style: italic; }
+  .todo-text::before { content: "✎ "; }
+
+  /* --- Barre pour tourner les pages (collée en bas de l'écran) --- */
+  .pager {
+    display: none; position: sticky; bottom: 0; z-index: 5; max-width: 900px; margin: 0 auto;
+    padding: 14px 0 18px; align-items: center; justify-content: space-between; gap: 12px;
+    background: linear-gradient(transparent, var(--desk) 35%);
+  }
+  .js .pager { display: flex; }
+  .pager button, .pager select {
+    font: 700 1.25rem var(--hand); color: var(--ink); background: var(--paper);
+    border: 2px solid var(--ink); border-radius: 8px 6px 9px 5px; padding: 2px 14px; cursor: pointer;
+  }
+  .pager button:disabled { opacity: .35; cursor: default; }
+  .pager .middle { display: flex; align-items: center; gap: 10px; color: var(--ink); font: 700 1.25rem var(--hand); }
+  @media (prefers-color-scheme: dark) { .pager .middle { color: var(--paper); } }
+
+  @media (max-width: 640px) {
+    body { font-size: 17px; }
+    .book { margin: 0; }
+    .page { border-radius: 0; padding: 28px 16px 0 44px;
+      background-image:
+        linear-gradient(90deg, transparent 30px, var(--margin) 30px, var(--margin) 32px, transparent 32px),
+        radial-gradient(var(--dot) 1.1px, transparent 1.4px);
+      background-size: 100% 100%, 22px 22px; background-repeat: no-repeat, repeat;
+      background-position: 0 0, 0 0; background-attachment: scroll, local; }
+    .js .page { height: calc(100vh - 64px); height: calc(100dvh - 64px); }
+    .page::after { margin-right: 0; }
+
+    .cover h1 { font-size: 3.2rem; }
+    .sticker { width: 120px; height: 120px; }
+    .phases, .cols { grid-template-columns: 1fr; }
+    .pager { padding: 10px 12px 14px; }
+    .pager .label { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .page.out, .page.in { animation: none; } }
+  @media print {
+    body { background: #fff; }
+    .js .page, .js .page.current { display: block; height: auto; overflow: visible; }
+    .page { box-shadow: none; break-after: page; }
+    .pager { display: none; }
+    .phase { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<main class="book" id="book">
+
+  <!-- ===================== PAGE 1 : COUVERTURE ===================== -->
+  <section class="page cover" id="couverture" data-title="Couverture">
+    <img class="sticker" src="img/prestashop-logo.png" alt="Logo PrestaShop">
+    <h1><span class="hl">Journal de bord</span></h1>
+    <p class="sub">L'Atelier des Saveurs · PrestaShop 8.2 · module <code>nk_clickcollect</code><br>tenu par Sarobidy</p>
+    <p class="legend">Une page par jour : Fait (avec preuve) · Erreurs &amp; résolutions · Blocages · Prochaine étape · Avis.
+      <span class="todo-text">En italique</span> : à compléter par Sarobidy.</p>
+    <div class="js-only">
+      <ol class="toc" id="toc"></ol>
+      <p class="hint">Tourner les pages : boutons ‹ ›, flèches ← → du clavier, ou glisser le doigt.</p>
+    </div>
+  </section>
+
+  <!-- ===================== PAGE 2 : FEUILLE DE ROUTE =====================
+       Cocher une tâche = ajouter la classe "done" au <li class="task"> et la preuve (commit, test).
+       La barre de progression et les tampons se calculent tout seuls. -->
+  <section class="page" id="feuille-de-route" data-title="Feuille de route">
+    <h2 class="tape">Feuille de route</h2>
+
+    <div class="progress">
+      <div class="bar"><span id="bar-fill"></span></div>
+      <span class="hand" id="bar-label">—</span>
+    </div>
+
+    <div class="phases">
+
+      <section class="phase">
+        <h3>A · Boutique</h3>
+        <p class="meta"><span>Partie A du cahier des charges</span></p>
+        <ul class="tasks">
+          <li class="task done">Instance PrestaShop 8.2 sous Docker <code class="proof">9af9356</code> <code class="proof">436c760</code></li>
+          <li class="task done">Catalogue : 3 catégories, 12 produits <code class="proof">d345a30</code></li>
+          <li class="task done">3 produits à déclinaisons <code class="proof">d345a30</code></li>
+          <li class="task">Procédure de relance pour un tiers (README)</li>
+          <li class="task">Thème enfant <code>atelier</code> (Classic intact)</li>
+          <li class="task">Accueil, header, footer, navigation, réassurance</li>
+          <li class="task">Fiches produits et catégories responsive</li>
+          <li class="task">Panier + commande complète en mode test</li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>1 · Squelette du module</h3>
+        <p class="meta"><code>feature/module-skeleton</code></p>
+        <ul class="tasks">
+          <li class="task">Classe <code>Nk_Clickcollect</code> : <code>install()</code> / <code>uninstall()</code></li>
+          <li class="task"><code>index.php</code> dans chaque dossier + <code>logo.png</code></li>
+          <li class="task">Tables <code>slot</code> et <code>booking</code> (<code>sql/install.php</code>, <code>uninstall.php</code>)</li>
+          <li class="task">Transporteur « Retrait en boutique » + <code>id_reference</code> en configuration</li>
+          <li class="task">Onglet admin « Click &amp; Collect » sous Commandes</li>
+          <li class="task"><code>tests/lint.sh</code> et <code>tests/reinstall.sh</code></li>
+          <li class="task">Install → uninstall → réinstall sans erreur</li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>2 · Créneaux en admin</h3>
+        <p class="meta"><code>feature/admin-slots</code></p>
+        <ul class="tasks">
+          <li class="task">ObjectModel <code>NkClickCollectSlot</code></li>
+          <li class="task">Liste des créneaux (HelperList)</li>
+          <li class="task">Création / modification (HelperForm)</li>
+          <li class="task">Validations : date non passée, fin &gt; début</li>
+          <li class="task">Suppression ; créneau réservé → désactivé</li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>3 · Créneau au checkout</h3>
+        <p class="meta"><code>feature/checkout-slot</code></p>
+        <ul class="tasks">
+          <li class="task"><code>displayCarrierExtraContent</code> : créneaux sous le transporteur</li>
+          <li class="task">Template <code>checkout_slots.tpl</code> (sorties échappées)</li>
+          <li class="task"><code>actionValidateStepComplete</code> : créneau obligatoire, actif, futur</li>
+          <li class="task">Réservation liée au panier (<code>NkClickCollectBooking</code>)</li>
+          <li class="task">Messages d'erreur traduisibles</li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>4 · Créneau sur la commande</h3>
+        <p class="meta"><code>feature/order-slot</code></p>
+        <ul class="tasks">
+          <li class="task"><code>actionValidateOrder</code> : réservation rattachée à la commande</li>
+          <li class="task"><code>displayOrderConfirmation</code> : rappel au client</li>
+          <li class="task"><code>displayAdminOrderMain</code> : créneau dans la fiche commande</li>
+          <li class="task"><code>actionCarrierUpdate</code> : référence transporteur cohérente</li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>5 · Tests &amp; documentation</h3>
+        <p class="meta"><code>docs/tests-readme</code></p>
+        <ul class="tasks">
+          <li class="task"><code>tests/TESTS.md</code> : scénarios manuels</li>
+          <li class="task">Créneaux de démo (<code>sql/demo.php</code>)</li>
+          <li class="task">README : installation, prérequis, lancement, choix techniques, tests</li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>6 · Bonus</h3>
+        <p class="meta"><span class="optional">seulement si 1 à 5 sont stables</span></p>
+        <ul class="tasks">
+          <li class="task">Places limitées par créneau</li>
+          <li class="task">Disponibilités actualisées en AJAX</li>
+          <li class="task">Créneaux complets non réservables</li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>Livrables de restitution</h3>
+        <p class="meta"><span>Section 3 du cahier des charges</span></p>
+        <ul class="tasks">
+          <li class="task">Dépôt Git propre + PR <code>develop</code> → <code>main</code></li>
+          <li class="task">Données de démo et configuration non sensible</li>
+          <li class="task">Vidéo de démo 5–10 min (ou démo live)</li>
+          <li class="task">Bilan personnel</li>
+        </ul>
+      </section>
+
+    </div>
+  </section>
+
+  <!-- ===================== PAGES DU JOURNAL : une par jour, la plus ancienne d'abord =====================
+  Modèle : copier ce bloc À LA FIN du carnet (data-date au format AAAA-MM-JJ : sert d'ancre #AAAA-MM-JJ et au sommaire).
+  <article class="page day" data-date="AAAA-MM-JJ">
+    <h2 class="tape blue">JJ/MM/AAAA</h2>
+    <p class="meta">Branche : <code>feature/...</code></p>
+    <h4>Fait</h4>
+    <ul><li>... (preuve : commit <code>abc1234</code> / test)</li></ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions</h4>
+      <ul><li><span class="err">Erreur :</span> message exact<br>
+        Cause : ...<br><span class="ok">Résolution :</span> ... (source : URL doc ou fichier:ligne)</li></ul>
+    </div>
+    <div class="cols">
+      <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>...</li></ul></div>
+    </div>
+    <h4>Avis</h4>
+    <div class="avis"><p>...</p></div>
+  </article>
+  -->
+
+  <article class="page day" data-date="2026-10-14">
+    <h2 class="tape blue">14/10/2026</h2>
+    <p class="meta">Branche : <code>develop</code></p>
+    <h4>Fait</h4>
+    <ul>
+      <li>Environnement Docker PrestaShop 8.2 initialisé — commit <code>9af9356</code>.</li>
+      <li>Catalogue : 3 catégories, 12 produits dont 3 à déclinaisons ; export dans <code>data/dump.sql</code> + images <code>data/img-products/</code> — commit <code>d345a30</code>.</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions</h4>
+      <ul><li class="todo-text">À compléter</li></ul>
+    </div>
+    <div class="cols">
+      <div><h4>Blocages</h4><ul><li class="todo-text">À compléter</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Fiabiliser l'environnement Docker (fait le 15/10).</li></ul></div>
+    </div>
+    <h4>Avis</h4>
+    <div class="avis"><p class="todo-text">À compléter</p></div>
+  </article>
+
+  <article class="page day" data-date="2026-10-15">
+    <h2 class="tape blue">15/10/2026</h2>
+    <p class="meta">Branche : <code>develop</code></p>
+    <h4>Fait</h4>
+    <ul>
+      <li>Docker : passage à MySQL 8, healthcheck de la base, ajout de Mailpit (:8025) et phpMyAdmin (:8081) — commit <code>436c760</code>.</li>
+      <li>Rédaction de <code>CLAUDE.md</code> : architecture du module, hooks, règles de sécurité, workflow Git, Definition of done.</li>
+      <li>Relecture du cahier des charges (<code>docs/cahier_des_charges.pdf</code>).</li>
+      <li>Décision tests : <code>tests/lint.sh</code> (<code>php -l</code>) + <code>tests/reinstall.sh</code> (install → uninstall → réinstall via <code>php bin/console prestashop:module</code>, commande vérifiée dans le conteneur) + scénarios manuels <code>tests/TESTS.md</code>. Pas de PHPUnit/Composer : trop lourd pour 2 semaines et contraire au choix « zéro dépendance ».</li>
+      <li>Création de ce journal : carnet à pages, feuille de route à cases à cocher, rendu vérifié par capture (Chrome headless dans Docker).</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions</h4>
+      <ul><li class="todo-text">À compléter</li></ul>
+    </div>
+    <div class="cols">
+      <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Branche <code>feature/module-skeleton</code> : install/uninstall, tables, transporteur, onglet admin, scripts de test.</li></ul></div>
+    </div>
+    <h4>Avis</h4>
+    <div class="avis"><p class="todo-text">À compléter</p></div>
+  </article>
+
+</main>
+
+<nav class="pager" aria-label="Pages du journal">
+  <button type="button" id="prev">‹ <span class="label">Précédente</span></button>
+  <div class="middle">
+    <span id="page-label"></span>
+    <select id="goto" aria-label="Aller à la page"></select>
+  </div>
+  <button type="button" id="next"><span class="label">Suivante</span> ›</button>
+</nav>
+
+<script>
+  // --- Feuille de route : barre de progression globale + tampon de chaque étape, calculés depuis les cases.
+  const tasks = document.querySelectorAll('.task');
+  const done = document.querySelectorAll('.task.done').length;
+  const percent = Math.round(done / tasks.length * 100);
+  document.getElementById('bar-fill').style.width = percent + '%';
+  document.getElementById('bar-label').textContent = done + ' / ' + tasks.length + ' · ' + percent + ' %';
+
+  document.querySelectorAll('.phase').forEach(phase => {
+    const total = phase.querySelectorAll('.task').length;
+    const ok = phase.querySelectorAll('.task.done').length;
+    const status = ok === 0 ? ['todo', 'à faire'] : ok === total ? ['done', 'fait'] : ['doing', 'en cours'];
+    const stamp = document.createElement('span');
+    stamp.className = 'stamp ' + status[0];
+    stamp.textContent = status[1];
+    phase.querySelector('.meta').appendChild(stamp);
+  });
+
+  // --- Carnet : une page visible à la fois. Pages, sommaire et numéros sont déduits du HTML.
+  const pages = [...document.querySelectorAll('.page')];
+  const titleOf = page => page.dataset.title || page.querySelector('.tape').textContent;
+  const goto = document.getElementById('goto');
+  const toc = document.getElementById('toc');
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  const label = document.getElementById('page-label');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let index = -1;
+  let turning = false;
+
+  pages.forEach((page, i) => {
+    if (page.dataset.date) page.id = page.dataset.date;
+    page.dataset.num = i + 1;
+    goto.add(new Option(titleOf(page), i));
+    if (i > 0) {
+      const link = document.createElement('a');
+      link.href = '#' + page.id;
+      link.textContent = titleOf(page);
+      link.addEventListener('click', e => { e.preventDefault(); show(i); });
+      toc.appendChild(document.createElement('li')).appendChild(link);
+    }
+  });
+
+  function show(i) {
+    if (i < 0 || i >= pages.length || i === index || turning) return;
+    const old = pages[index];
+    const page = pages[i];
+    if (old && !reduceMotion) {
+      // Vers l'avant : l'ancienne page pivote et découvre la nouvelle. Vers l'arrière : la nouvelle revient par-dessus.
+      turning = true;
+      const moving = i > index ? old : page;
+      page.classList.add('current');
+      moving.classList.add(i > index ? 'out' : 'in');
+      moving.addEventListener('animationend', () => {
+        moving.classList.remove('out', 'in');
+        old.classList.remove('current');
+        turning = false;
+      }, { once: true });
+    } else {
+      if (old) old.classList.remove('current');
+      page.classList.add('current');
+    }
+    index = i;
+    prev.disabled = i === 0;
+    next.disabled = i === pages.length - 1;
+    label.textContent = 'Page ' + (i + 1) + ' / ' + pages.length;
+    goto.value = i;
+    history.replaceState(null, '', '#' + page.id);
+    page.scrollTop = 0;
+  }
+
+  prev.addEventListener('click', () => show(index - 1));
+  next.addEventListener('click', () => show(index + 1));
+  goto.addEventListener('change', () => show(Number(goto.value)));
+  document.addEventListener('keydown', e => {
+    if (e.target.closest('select')) return;
+    if (e.key === 'ArrowRight') show(index + 1);
+    if (e.key === 'ArrowLeft') show(index - 1);
+  });
+
+  // Glisser le doigt (mobile) : seulement un geste surtout horizontal, pour ne pas gêner le défilement.
+  let x0 = 0, y0 = 0;
+  const book = document.getElementById('book');
+  book.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  book.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - x0;
+    const dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) show(index + (dx < 0 ? 1 : -1));
+  });
+
+  // Page de départ : celle de l'adresse (#2026-10-15) si elle existe, sinon la couverture.
+  const start = pages.findIndex(page => '#' + page.id === location.hash);
+  show(start >= 0 ? start : 0);
+</script>
+</body>
+</html>

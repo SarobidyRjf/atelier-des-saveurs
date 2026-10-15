@@ -10,3 +10,8 @@ Thumbs.db
 	
 backup.sql
 backup-img/
+# Métadonnées Windows (téléchargements)
+*:Zone.Identifier
+
+# Cahier des charges : document interne Nuklear (cite des projets clients), jamais dans le dépôt public
+docs/cahier_des_charges.pdf
