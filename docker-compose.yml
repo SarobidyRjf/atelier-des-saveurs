@@ -1,33 +1,39 @@
 services:
   mysql:
     container_name: some-mysql
-    image: mysql:5.7
+    image: mysql:8.0
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWD}
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     networks:
       - prestashop_network
     volumes:
       - dbdata:/var/lib/mysql
-      
+
   prestashop:
     container_name: prestashop
     image: prestashop/prestashop:8.2
     restart: unless-stopped
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     ports:
-      - 8080:80
+      - "${PS_PORT:-8080}:80"
     environment:
       DB_SERVER: some-mysql
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWD: ${DB_PASSWD}
       PS_INSTALL_AUTO: 1
-      PS_DOMAIN: localhost:8080
+      PS_DOMAIN: localhost:${PS_PORT:-8080}
       PS_LANGUAGE: fr
       PS_COUNTRY: fr
       PS_DEV_MODE: 1
@@ -42,8 +48,34 @@ services:
       - ./themes/atelier/:/var/www/html/themes/atelier/
       - ./modules/nk_clickcollect/:/var/www/html/modules/nk_clickcollect/
 
+  # Capture tous les e-mails envoyés par la boutique (aucun envoi réel).
+  # Interface : http://localhost:8025
+  mailpit:
+    container_name: mailpit
+    image: axllent/mailpit:v1.20
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+    networks:
+      - prestashop_network
+
+  # Pour inspecter les tables du module : http://localhost:8081
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin:5.2
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PMA_HOST: some-mysql
+    ports:
+      - "8081:80"
+    networks:
+      - prestashop_network
+
 networks:
-    prestashop_network:
+  prestashop_network:
 
 volumes:
   psdata:
