@@ -11,7 +11,7 @@ Ce fichier guide Claude Code (claude.ai/code) lorsqu'il travaille sur le code de
 ## Environnement
 - Docker : `docker compose up -d`. Boutique http://localhost:8080, admin `/admin1616`, phpMyAdmin :8081, Mailpit :8025.
 - Code versionné : `modules/nk_clickcollect/` et `themes/atelier/` (montés dans le conteneur). Ne jamais modifier le cœur PrestaShop ni le thème `classic`.
-- Montage sous WSL : toujours lancer le projet depuis WSL. Si `docker ps` affiche `prestashop … (unhealthy)`, le module ou le thème est vide dans le conteneur (montage cassé) : vérifier avec `docker exec prestashop ls -A modules/nk_clickcollect themes/atelier`, réparer avec `docker compose up -d --force-recreate prestashop`. Vérifier ce point avant de déboguer un « code qui ne s'applique pas ».
+- Montage sous WSL : toujours lancer le projet depuis WSL. Si `docker ps` affiche `prestashop … (unhealthy)`, le module ou le thème est vide dans le conteneur (montage cassé) : vérifier avec `docker exec prestashop ls -A modules/nk_clickcollect themes/atelier`, réparer avec `docker compose up -d --force-recreate prestashop`. Vérifier ce point avant de déboguer un « code qui ne s'applique pas ». Arrive aussi après un `git switch` vers une branche où le dossier n'existe pas : Git supprime puis recrée le dossier, et Docker reste branché sur l'ancien. Réflexe : `docker ps` après chaque changement de branche.
 - Commandes dans le conteneur : `docker exec prestashop <cmd>`. Vider le cache : `docker exec prestashop rm -rf var/cache/dev var/cache/prod`.
 - **Console PrestaShop toujours en `www-data`** : `docker exec -u www-data prestashop php bin/console ...`. Lancée en root, elle reconstruit `var/cache/dev` en root et le back-office tombe en erreur 500 (`appParameters.php` introuvable). Réparation : `docker exec prestashop chown -R www-data:www-data var/cache var/logs`.
 - Conteneurs : `prestashop` (PS 8.2, `PS_DEV_MODE=1`, cache dans `var/cache/dev`), `some-mysql` (MySQL 8, préfixe des tables `ps_`), `phpmyadmin`, `mailpit`. Identifiants dans `.env` (copié depuis `.env.example`, non versionné).
@@ -102,7 +102,7 @@ Un créneau réservable = existe, `active = 1`, dans le futur (fuseau de la bout
 - Minimal : le moins de code possible qui remplit le cahier des charges. Pas d'abstraction « au cas où », pas de dépendance externe.
 - PHP compatible 8.1, standards PrestaShop : pas de `?>` final, garde `if (!defined('_PS_VERSION_')) { exit; }` en tête de chaque fichier PHP, `index.php` de protection dans chaque dossier.
 - Documentation : un PHPDoc court sur chaque classe et méthode publique (rôle, paramètres, retour) ; commentaires seulement pour le « pourquoi » non évident. En français.
-- Textes affichés traduisibles (`$this->l()` / `{l s='...' mod='nk_clickcollect'}`).
+- Textes affichés traduisibles (`$this->l()` / `{l s='...' mod='nk_clickcollect'}`). Le nom avec underscore empêche `trans()` à domaine, d'où `l()`. Dans le contrôleur admin, `$this->l()` est déprécié en 8.2 : utiliser `$this->module->l('texte', 'AdminNkClickCollectSlotsController')` (méthode `text()` du contrôleur). `l()` échappe le HTML : un nom propre contenant « & » s'écrit sans `l()`.
 
 ## Sécurité (obligatoire)
 - Entrées : `Tools::getValue()` toujours casté/validé (`(int)`, `Validate::isDate`, etc.). Jamais de donnée utilisateur brute dans du SQL : `(int)`, `pSQL()`, `bqSQL()` ou `DbQuery`.

@@ -10,6 +10,9 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+// Pas d'autoload Composer : les classes du module sont chargées à la main.
+require_once __DIR__ . '/classes/NkClickCollectSlot.php';
+
 /**
  * Classe principale du module. Le nom de la classe doit correspondre au nom
  * technique du dossier (nk_clickcollect → Nk_Clickcollect).
