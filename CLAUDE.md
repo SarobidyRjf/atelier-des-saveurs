@@ -13,6 +13,7 @@ Ce fichier guide Claude Code (claude.ai/code) lorsqu'il travaille sur le code de
 - Code versionné : `modules/nk_clickcollect/` et `themes/atelier/` (montés dans le conteneur). Ne jamais modifier le cœur PrestaShop ni le thème `classic`.
 - Montage sous WSL : toujours lancer le projet depuis WSL. Si `docker ps` affiche `prestashop … (unhealthy)`, le module ou le thème est vide dans le conteneur (montage cassé) : vérifier avec `docker exec prestashop ls -A modules/nk_clickcollect themes/atelier`, réparer avec `docker compose up -d --force-recreate prestashop`. Vérifier ce point avant de déboguer un « code qui ne s'applique pas ».
 - Commandes dans le conteneur : `docker exec prestashop <cmd>`. Vider le cache : `docker exec prestashop rm -rf var/cache/dev var/cache/prod`.
+- **Console PrestaShop toujours en `www-data`** : `docker exec -u www-data prestashop php bin/console ...`. Lancée en root, elle reconstruit `var/cache/dev` en root et le back-office tombe en erreur 500 (`appParameters.php` introuvable). Réparation : `docker exec prestashop chown -R www-data:www-data var/cache var/logs`.
 - Conteneurs : `prestashop` (PS 8.2, `PS_DEV_MODE=1`, cache dans `var/cache/dev`), `some-mysql` (MySQL 8, préfixe des tables `ps_`), `phpmyadmin`, `mailpit`. Identifiants dans `.env` (copié depuis `.env.example`, non versionné).
 - Seuls le module et le thème sont montés depuis l'hôte ; tout le reste de PrestaShop vit dans le volume `psdata` (et la base dans `dbdata`). `docker compose down -v` efface donc la boutique et la base.
 - Données catalogue versionnées : `data/dump.sql` (dump complet de la base `prestashop`, 3 catégories / 12 produits) et `data/img-products/` (contenu de `img/p`). Restauration :
@@ -20,10 +21,10 @@ Ce fichier guide Claude Code (claude.ai/code) lorsqu'il travaille sur le code de
   `docker cp data/img-products/. prestashop:/var/www/html/img/p/ && docker exec prestashop chown -R www-data:www-data img/p`
   (`backup.sql` et `backup-img/` à la racine sont des sauvegardes locales ignorées par Git.)
 - Tests, sans aucune dépendance (pas de PHPUnit/PHPStan/Composer, choix assumé) :
-  - Lint : `tests/lint.sh` (`php -l` sur chaque fichier PHP du module, dans le conteneur).
-  - Réinstallation : `tests/reinstall.sh` enchaîne install → vérifications → uninstall → install → vérifications (tables, transporteur actif + `NK_CLICKCOLLECT_CARRIER_REF`, onglet admin, données conservées) via `docker exec prestashop php bin/console prestashop:module install|uninstall|reset nk_clickcollect` (commande vérifiée en 8.2). Couvre l'exigence du cahier des charges « y compris après une réinstallation ».
-  - Parcours client (créneau, erreurs, commande, fiche admin) : scénarios manuels dans `tests/TESTS.md`.
-  - Les deux scripts sont écrits à l'étape `feature/module-skeleton` ; ensuite, les lancer avant chaque commit.
+  - Lint : `modules/nk_clickcollect/tests/lint.sh` (`php -l` sur chaque fichier PHP du module, dans le conteneur ; code retour 1 si erreur).
+  - Réinstallation : `modules/nk_clickcollect/tests/reinstall.sh` enchaîne install → vérifications → uninstall → vérifications → install → vérifications (module, tables, transporteur actif + `NK_CLICKCOLLECT_CARRIER_REF`, onglet admin, 6 hooks ; après uninstall : tables supprimées, transporteur conservé avec `deleted = 1`, onglet retiré). Les tables étant supprimées à la désinstallation, elles sont **recréées** (vides, puis données de démo à l'étape 5). Couvre l'exigence « y compris après une réinstallation ».
+  - Les deux scripts se lancent depuis l'hôte, à la racine du dépôt, avant chaque commit.
+  - Parcours client (créneau, erreurs, commande, fiche admin) : scénarios manuels dans `modules/nk_clickcollect/tests/TESTS.md`.
 
 ## Sources de vérité (dans cet ordre)
 1. Doc officielle PrestaShop **8** : https://devdocs.prestashop-project.org/8/ (jamais la doc 1.6 / 1.7 / 9 sans le signaler).
@@ -70,6 +71,7 @@ Pas de front controller ni de JS dans le périmètre obligatoire. `controllers/f
 ### Transporteur
 - Le module crée **son propre** transporteur « Retrait en boutique » à l'installation (`is_module = true`, `external_module_name = 'nk_clickcollect'`, gratuit, zones + groupes associés). Condition pour que `displayCarrierExtraContent` soit appelé (seul le module lié au transporteur reçoit ce hook).
 - Stocker son **`id_reference`** (pas l'`id_carrier`, qui change à chaque édition en admin) dans `NK_CLICKCOLLECT_CARRIER_REF`. Comparer les transporteurs via `id_reference`.
+- `need_range = true` obligatoire (sinon un transporteur de module est exclu des choix : `classes/Carrier.php:570`) ; `is_free = true` + `shipping_external = false` : le module n'a pas à calculer de frais, donc `extends Module` et non `CarrierModule` (`classes/Cart.php:3787` et `3911`).
 - Désinstallation : transporteur passé à `deleted = 1`, jamais supprimé (anciennes commandes liées).
 - Doc : https://devdocs.prestashop-project.org/8/modules/carrier/
 
