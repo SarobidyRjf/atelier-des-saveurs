@@ -265,11 +265,11 @@
         <h3>2 · Créneaux en admin</h3>
         <p class="meta"><code>feature/admin-slots</code></p>
         <ul class="tasks">
-          <li class="task">ObjectModel <code>NkClickCollectSlot</code></li>
-          <li class="task">Liste des créneaux (HelperList)</li>
-          <li class="task">Création / modification (HelperForm)</li>
-          <li class="task">Validations : date non passée, fin &gt; début</li>
-          <li class="task">Suppression ; créneau réservé → désactivé</li>
+          <li class="task done">ObjectModel <code>NkClickCollectSlot</code> <code class="proof">99f9226</code></li>
+          <li class="task done">Liste des créneaux (HelperList) <code class="proof">99f9226</code></li>
+          <li class="task done">Création / modification (HelperForm) <code class="proof">99f9226</code></li>
+          <li class="task done">Validations : date non passée, fin &gt; début <code class="proof">99f9226</code></li>
+          <li class="task done">Suppression ; créneau réservé → désactivé <code class="proof">99f9226</code></li>
         </ul>
       </section>
 
@@ -405,6 +405,8 @@
       <li>Plan de développement du module validé, chaque hook vérifié dans le code de PS 8.2 (fichier:ligne).</li>
       <li>Étape 1 — squelette du module : install/uninstall, 2 tables, transporteur « Retrait en boutique » gratuit référencé par <code>id_reference</code>, onglet Commandes &gt; Click &amp; Collect, 6 hooks enregistrés, <code>tests/lint.sh</code> et <code>tests/reinstall.sh</code> au vert (19 contrôles) — commit <code>eec3a5b</code>.</li>
       <li>Vérifié : le transporteur est proposé au checkout à 0 € (simulation de panier), la page de l'onglet s'ouvre dans le back-office.</li>
+      <li>Étape 2 — créneaux en admin : ObjectModel <code>NkClickCollectSlot</code>, liste (date, heures, nombre de réservations, actif), tri par date puis heure, formulaire, validations serveur, suppression refusée si réservations — commit <code>99f9226</code>.</li>
+      <li>Vérifié par de vraies soumissions du formulaire : création et modification OK ; 10 cas invalides refusés avec le bon message (date passée, fin ≤ début, <code>25:00</code>, <code>abc</code>, champs vides…) et saisie conservée ; suppression d'un créneau réservé refusée ; jeton invalide bloqué ; lint et réinstallation au vert.</li>
     </ul>
     <div class="postit">
       <h4>Erreurs &amp; résolutions</h4>
@@ -421,11 +423,20 @@
         <li><span class="err">Erreur :</span> nom du module affiché « Click &amp;amp; Collect ».<br>
           Cause : <code>$this-&gt;l()</code> applique <code>htmlspecialchars</code> (source : <code>classes/Translate.php:209</code>).<br>
           <span class="ok">Résolution :</span> nom propre écrit sans <code>l()</code> (il n'a pas à être traduit).</li>
+        <li><span class="err">Erreur :</span> module absent du back-office après <code>git switch develop</code>.<br>
+          Cause : la branche n'avait pas encore le module ; Git a supprimé puis recréé le dossier, Docker restait branché sur l'ancien (<code>unhealthy</code>).<br>
+          <span class="ok">Résolution :</span> <code>docker compose up -d --force-recreate prestashop</code> ; réflexe <code>docker ps</code> après chaque changement de branche.</li>
+        <li><span class="err">Erreur :</span> messages admin avec le nom technique du champ (« Ce champ est obligatoire : slot_date »).<br>
+          Cause : le cœur range ses erreurs par nom de champ (<code>AdminController.php:3727</code>).<br>
+          <span class="ok">Résolution :</span> remplacement par le libellé (« Date ») dans <code>_childValidation()</code>.</li>
+        <li><span class="err">Erreur :</span> créneaux d'un même jour mal triés (10:00 avant 09:00).<br>
+          Cause : <code>_defaultOrderBy</code> n'accepte qu'une colonne.<br>
+          <span class="ok">Résolution :</span> surcharge de <code>getOrderByClause()</code> pour ajouter l'heure (<code>AdminController.php:3379</code>).</li>
       </ul>
     </div>
     <div class="cols">
       <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
-      <div><h4>Prochaine étape</h4><ul><li>Branche <code>feature/admin-slots</code> : ObjectModel créneau + CRUD admin avec validations (date non passée, fin &gt; début).</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Branche <code>feature/checkout-slot</code> : afficher les créneaux sous le transporteur au checkout et valider le choix côté serveur.</li></ul></div>
     </div>
     <h4>Avis</h4>
     <div class="avis"><p class="todo-text">À compléter</p></div>
