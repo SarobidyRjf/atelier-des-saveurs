@@ -21,7 +21,15 @@ services:
   prestashop:
     container_name: prestashop
     image: prestashop/prestashop:8.2
-    restart: unless-stopped
+    # Pas de redémarrage auto : sous WSL, un conteneur relancé avant la distribution
+    # monte des dossiers vides. Lancer le projet avec `docker compose up -d` depuis WSL.
+    restart: "no"
+    # "unhealthy" dans `docker ps` si le module ou le thème ne sont pas montés (dossier vide).
+    healthcheck:
+      test: ["CMD-SHELL", "test -n \"$$(ls -A /var/www/html/modules/nk_clickcollect)\" && test -n \"$$(ls -A /var/www/html/themes/atelier)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 1
     depends_on:
       mysql:
         condition: service_healthy
