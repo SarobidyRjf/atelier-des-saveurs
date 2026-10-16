@@ -277,11 +277,11 @@
         <h3>3 · Créneau au checkout</h3>
         <p class="meta"><code>feature/checkout-slot</code></p>
         <ul class="tasks">
-          <li class="task"><code>displayCarrierExtraContent</code> : créneaux sous le transporteur</li>
-          <li class="task">Template <code>checkout_slots.tpl</code> (sorties échappées)</li>
-          <li class="task"><code>actionValidateStepComplete</code> : créneau obligatoire, actif, futur</li>
-          <li class="task">Réservation liée au panier (<code>NkClickCollectBooking</code>)</li>
-          <li class="task">Messages d'erreur traduisibles</li>
+          <li class="task done"><code>displayCarrierExtraContent</code> : créneaux sous le transporteur <code class="proof">a0084a2</code></li>
+          <li class="task done">Template <code>checkout_slots.tpl</code> (sorties échappées) <code class="proof">a0084a2</code></li>
+          <li class="task done"><code>actionValidateStepComplete</code> : créneau obligatoire, actif, futur <code class="proof">a0084a2</code></li>
+          <li class="task done">Réservation liée au panier (<code>NkClickCollectBooking</code>) <code class="proof">a0084a2</code></li>
+          <li class="task done">Messages d'erreur traduisibles <code class="proof">a0084a2</code></li>
         </ul>
       </section>
 
@@ -396,7 +396,7 @@
 
   <article class="page day" data-date="2026-10-16">
     <h2 class="tape blue">16/10/2026</h2>
-    <p class="meta">Branches : <code>chore/docker-montage</code>, <code>docs/claude-md</code>, <code>feature/module-skeleton</code></p>
+    <p class="meta">Branches : <code>chore/docker-montage</code>, <code>docs/claude-md</code>, <code>feature/module-skeleton</code>, <code>feature/admin-slots</code>, <code>feature/checkout-slot</code></p>
     <h4>Fait</h4>
     <ul>
       <li>Journal publié pour le manager via GitHub Pages (<code>develop</code> / <code>docs</code>) — PR #1.</li>
@@ -407,6 +407,8 @@
       <li>Vérifié : le transporteur est proposé au checkout à 0 € (simulation de panier), la page de l'onglet s'ouvre dans le back-office.</li>
       <li>Étape 2 — créneaux en admin : ObjectModel <code>NkClickCollectSlot</code>, liste (date, heures, nombre de réservations, actif), tri par date puis heure, formulaire, validations serveur, suppression refusée si réservations — commit <code>99f9226</code>.</li>
       <li>Vérifié par de vraies soumissions du formulaire : création et modification OK ; 10 cas invalides refusés avec le bon message (date passée, fin ≤ début, <code>25:00</code>, <code>abc</code>, champs vides…) et saisie conservée ; suppression d'un créneau réservé refusée ; jeton invalide bloqué ; lint et réinstallation au vert.</li>
+      <li>Étape 3 — créneau au checkout : liste des créneaux réservables sous « Retrait en boutique », validation serveur au clic sur « Continuer », réservation liée au panier de la session — commit <code>a0084a2</code>.</li>
+      <li>Vérifié par un vrai parcours client (client de test, curl) : 5 refus avec message (sans créneau, inexistant, inactif, déjà commencé, injection <code>abc'; DROP</code> neutralisée par <code>(int)</code>) ; choix valide → étape Paiement, une réservation, pré-cochée au retour, mise à jour sans doublon ; autre transporteur sans créneau accepté ; message « aucun créneau » après réinstallation.</li>
     </ul>
     <div class="postit">
       <h4>Erreurs &amp; résolutions</h4>
@@ -432,11 +434,17 @@
         <li><span class="err">Erreur :</span> créneaux d'un même jour mal triés (10:00 avant 09:00).<br>
           Cause : <code>_defaultOrderBy</code> n'accepte qu'une colonne.<br>
           <span class="ok">Résolution :</span> surcharge de <code>getOrderByClause()</code> pour ajouter l'heure (<code>AdminController.php:3379</code>).</li>
+        <li><span class="err">Erreur :</span> sans validation, le client passait au paiement avec « Retrait en boutique » et <strong>aucun créneau</strong>.<br>
+          Cause : le cœur considère l'étape complète si le module ne dit rien.<br>
+          <span class="ok">Résolution :</span> <code>actionValidateStepComplete</code> met <code>completed = false</code> (passé par référence, <code>CheckoutDeliveryStep.php:204</code>) et ajoute un message.</li>
+        <li><span class="err">Piège évité :</span> MySQL tourne en UTC (12:29) alors que la boutique est en Europe/Paris (14:29).<br>
+          Cause : <code>NOW()</code> en SQL aurait proposé des créneaux déjà passés.<br>
+          <span class="ok">Résolution :</span> « maintenant » calculé en PHP (<code>date()</code>, <code>config/config.inc.php:150</code>) et passé à la requête.</li>
       </ul>
     </div>
     <div class="cols">
       <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
-      <div><h4>Prochaine étape</h4><ul><li>Branche <code>feature/checkout-slot</code> : afficher les créneaux sous le transporteur au checkout et valider le choix côté serveur.</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Branche <code>feature/order-slot</code> : rattacher la réservation à la commande, rappel au client et créneau dans la fiche commande admin.</li></ul></div>
     </div>
     <h4>Avis</h4>
     <div class="avis"><p class="todo-text">À compléter</p></div>
