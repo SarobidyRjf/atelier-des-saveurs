@@ -89,6 +89,8 @@ Onglet admin « Click & Collect » via la propriété `$tabs` du module (sous Co
 
 ### Règles métier côté serveur
 Un créneau réservable = existe, `active = 1`, dans le futur (fuseau de la boutique) ; bonus : places restantes. Le panier doit appartenir au client courant (`$this->context->cart`). Un créneau ayant des réservations ne se supprime pas : il se désactive.
+- « Maintenant » se calcule toujours en PHP (`date()`, fuseau `PS_TIMEZONE` = Europe/Paris) et se passe à la requête : **jamais `NOW()` en SQL**, MySQL tourne en UTC dans ce conteneur (2 h d'écart).
+- Client de test pour les parcours front : `client.test@atelier-des-saveurs.test` / `ClickCollect2026!` (adresse à Paris), créé en base de dev uniquement.
 
 ### Ordre de développement (une branche feature par étape)
 1. `feature/module-skeleton` : install/uninstall, tables, transporteur, onglet ; tester install → uninstall → réinstall.

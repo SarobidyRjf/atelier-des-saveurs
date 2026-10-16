@@ -61,6 +61,41 @@ class NkClickCollectSlot extends ObjectModel
     }
 
     /**
+     * Créneaux proposables aux clients : actifs et pas encore commencés, triés par date puis heure.
+     * « Maintenant » est calculé en PHP (fuseau de la boutique) et non avec NOW() de MySQL,
+     * qui tourne en UTC dans ce conteneur.
+     *
+     * @return array Lignes de la table (id_slot, slot_date, time_start, time_end, ...)
+     */
+    public static function getBookableSlots()
+    {
+        $query = (new DbQuery())
+            ->select('*')
+            ->from('nk_clickcollect_slot')
+            ->where('active = 1')
+            ->where('CONCAT(slot_date, " ", time_start) > "' . pSQL(date('Y-m-d H:i:s')) . '"')
+            ->orderBy('slot_date ASC, time_start ASC');
+
+        return Db::getInstance()->executeS($query, true, false);
+    }
+
+    /**
+     * Règle métier côté serveur : un créneau est réservable s'il existe, est actif et n'a pas commencé.
+     *
+     * @param int $idSlot
+     *
+     * @return bool
+     */
+    public static function isBookable($idSlot)
+    {
+        $slot = new self((int) $idSlot);
+
+        return Validate::isLoadedObject($slot)
+            && $slot->active
+            && strtotime($slot->slot_date . ' ' . $slot->time_start) > time();
+    }
+
+    /**
      * Nombre de réservations liées à un créneau.
      *
      * @param int $idSlot

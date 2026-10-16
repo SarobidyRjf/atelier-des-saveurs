@@ -12,6 +12,7 @@ if (!defined('_PS_VERSION_')) {
 
 // Pas d'autoload Composer : les classes du module sont chargées à la main.
 require_once __DIR__ . '/classes/NkClickCollectSlot.php';
+require_once __DIR__ . '/classes/NkClickCollectBooking.php';
 
 /**
  * Classe principale du module. Le nom de la classe doit correspondre au nom
@@ -166,26 +167,100 @@ class Nk_Clickcollect extends Module
     }
 
     /**
-     * Affiche les créneaux sous le transporteur Click & Collect (étape feature/checkout-slot).
+     * Le transporteur donné (par son id_reference) est-il le « Retrait en boutique » du module ?
+     *
+     * @param int $idReference
+     *
+     * @return bool
+     */
+    private function isClickCollectReference($idReference)
+    {
+        return (int) $idReference > 0 && (int) $idReference === (int) Configuration::get(self::CONFIG_CARRIER_REF);
+    }
+
+    /**
+     * Affiche les créneaux réservables sous le transporteur « Retrait en boutique », à l'étape livraison.
      * Appelé uniquement pour le module lié au transporteur (classes/checkout/DeliveryOptionsFinder.php:129).
      *
-     * @param array $params ['carrier' => array]
+     * @param array $params ['carrier' => array] (contient id_reference)
      *
      * @return string
      */
     public function hookDisplayCarrierExtraContent($params)
     {
-        return '';
+        if (!$this->isClickCollectReference($params['carrier']['id_reference'] ?? 0)) {
+            return '';
+        }
+
+        $slots = [];
+        foreach (NkClickCollectSlot::getBookableSlots() as $row) {
+            $slots[] = [
+                'id' => (int) $row['id_slot'],
+                'date' => Tools::displayDate($row['slot_date']), // format de date de la langue du client
+                'start' => substr($row['time_start'], 0, 5),
+                'end' => substr($row['time_end'], 0, 5),
+            ];
+        }
+        // Créneau déjà choisi pour ce panier : le cœur ne re-coche pas les champs des modules.
+        $booking = NkClickCollectBooking::getByCart((int) $this->context->cart->id);
+
+        $this->context->smarty->assign([
+            'nk_slots' => $slots,
+            'nk_selected_slot' => $booking ? (int) $booking->id_slot : 0,
+        ]);
+
+        return $this->fetch('module:nk_clickcollect/views/templates/hook/checkout_slots.tpl');
     }
 
     /**
-     * Valide côté serveur le créneau choisi à l'étape livraison (étape feature/checkout-slot).
+     * Valide côté serveur le créneau choisi quand le client clique sur « Continuer » à l'étape livraison,
+     * puis enregistre la réservation du panier. Le cœur n'appelle ce hook que si le transporteur choisi
+     * est celui de ce module (classes/checkout/CheckoutDeliveryStep.php:196-212).
+     * Mettre $params['completed'] à false bloque le client sur l'étape livraison.
      *
      * @param array $params ['step_name' => string, 'request_params' => array, 'completed' => bool (par référence)]
-     * (classes/checkout/CheckoutDeliveryStep.php:204)
      */
     public function hookActionValidateStepComplete($params)
     {
+        if (($params['step_name'] ?? '') !== 'delivery') {
+            return;
+        }
+
+        // Ne jamais faire confiance au formulaire : on caste et on revérifie tout côté serveur.
+        $idSlot = (int) ($params['request_params']['nk_clickcollect_slot'] ?? 0);
+        if ($idSlot <= 0) {
+            $this->refuseStep($params, $this->l('Veuillez choisir un créneau de retrait.'));
+
+            return;
+        }
+        if (!NkClickCollectSlot::isBookable($idSlot)) {
+            $this->refuseStep($params, $this->l('Ce créneau n\'est plus disponible, veuillez en choisir un autre.'));
+
+            return;
+        }
+
+        // La réservation est liée au panier de la session ($this->context->cart), jamais à un id venu
+        // de la requête : un client ne peut donc réserver que pour son propre panier.
+        $idCart = (int) $this->context->cart->id;
+        $booking = NkClickCollectBooking::getByCart($idCart) ?: new NkClickCollectBooking();
+        $booking->id_cart = $idCart;
+        $booking->id_slot = $idSlot;
+        if (!$booking->save()) {
+            $this->refuseStep($params, $this->l('Votre créneau n\'a pas pu être enregistré, veuillez réessayer.'));
+        }
+    }
+
+    /**
+     * Bloque l'étape livraison et affiche un message d'erreur au client.
+     * $params['completed'] est une référence vers la variable du cœur : la modifier ici la modifie là-bas.
+     *
+     * @param array $params Paramètres reçus par hookActionValidateStepComplete
+     * @param string $message
+     */
+    private function refuseStep(array $params, $message)
+    {
+        $params['completed'] = false;
+        $this->context->controller->errors[] = $message;
     }
 
     /**
