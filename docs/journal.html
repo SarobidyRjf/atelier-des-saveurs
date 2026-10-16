@@ -251,13 +251,13 @@
         <h3>1 · Squelette du module</h3>
         <p class="meta"><code>feature/module-skeleton</code></p>
         <ul class="tasks">
-          <li class="task">Classe <code>Nk_Clickcollect</code> : <code>install()</code> / <code>uninstall()</code></li>
-          <li class="task"><code>index.php</code> dans chaque dossier + <code>logo.png</code></li>
-          <li class="task">Tables <code>slot</code> et <code>booking</code> (<code>sql/install.php</code>, <code>uninstall.php</code>)</li>
-          <li class="task">Transporteur « Retrait en boutique » + <code>id_reference</code> en configuration</li>
-          <li class="task">Onglet admin « Click &amp; Collect » sous Commandes</li>
-          <li class="task"><code>tests/lint.sh</code> et <code>tests/reinstall.sh</code></li>
-          <li class="task">Install → uninstall → réinstall sans erreur</li>
+          <li class="task done">Classe <code>Nk_Clickcollect</code> : <code>install()</code> / <code>uninstall()</code> <code class="proof">eec3a5b</code></li>
+          <li class="task done"><code>index.php</code> dans chaque dossier + <code>logo.png</code> <code class="proof">eec3a5b</code></li>
+          <li class="task done">Tables <code>slot</code> et <code>booking</code> (<code>sql/install.php</code>, <code>uninstall.php</code>) <code class="proof">eec3a5b</code></li>
+          <li class="task done">Transporteur « Retrait en boutique » + <code>id_reference</code> en configuration <code class="proof">eec3a5b</code></li>
+          <li class="task done">Onglet admin « Click &amp; Collect » sous Commandes <code class="proof">eec3a5b</code></li>
+          <li class="task done"><code>tests/lint.sh</code> et <code>tests/reinstall.sh</code> <code class="proof">eec3a5b</code></li>
+          <li class="task done">Install → uninstall → réinstall sans erreur <code class="proof">eec3a5b</code></li>
         </ul>
       </section>
 
@@ -389,6 +389,43 @@
     <div class="cols">
       <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
       <div><h4>Prochaine étape</h4><ul><li>Branche <code>feature/module-skeleton</code> : install/uninstall, tables, transporteur, onglet admin, scripts de test.</li></ul></div>
+    </div>
+    <h4>Avis</h4>
+    <div class="avis"><p class="todo-text">À compléter</p></div>
+  </article>
+
+  <article class="page day" data-date="2026-10-16">
+    <h2 class="tape blue">16/10/2026</h2>
+    <p class="meta">Branches : <code>chore/docker-montage</code>, <code>docs/claude-md</code>, <code>feature/module-skeleton</code></p>
+    <h4>Fait</h4>
+    <ul>
+      <li>Journal publié pour le manager via GitHub Pages (<code>develop</code> / <code>docs</code>) — PR #1.</li>
+      <li>Docker : healthcheck qui signale un montage vide (<code>unhealthy</code>) et <code>restart: "no"</code> — commit <code>7178fa4</code>, PR #2.</li>
+      <li><code>CLAUDE.md</code> versionné (consignes du projet) — commit <code>5c705dc</code>, PR #3.</li>
+      <li>Plan de développement du module validé, chaque hook vérifié dans le code de PS 8.2 (fichier:ligne).</li>
+      <li>Étape 1 — squelette du module : install/uninstall, 2 tables, transporteur « Retrait en boutique » gratuit référencé par <code>id_reference</code>, onglet Commandes &gt; Click &amp; Collect, 6 hooks enregistrés, <code>tests/lint.sh</code> et <code>tests/reinstall.sh</code> au vert (19 contrôles) — commit <code>eec3a5b</code>.</li>
+      <li>Vérifié : le transporteur est proposé au checkout à 0 € (simulation de panier), la page de l'onglet s'ouvre dans le back-office.</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions</h4>
+      <ul>
+        <li><span class="err">Erreur :</span> dossiers <code>modules/nk_clickcollect</code> et <code>themes/atelier</code> vides dans le conteneur.<br>
+          Cause : conteneur relancé au démarrage de Windows avant la distribution WSL (<code>restart: unless-stopped</code>).<br>
+          <span class="ok">Résolution :</span> <code>docker compose up -d --force-recreate prestashop</code> + healthcheck et <code>restart: "no"</code>.</li>
+        <li><span class="err">Erreur :</span> transporteur du module absent des choix au checkout.<br>
+          Cause : un transporteur de module n'est retenu que si <code>need_range = 1</code> (filtre <code>is_module = 0 OR need_range = 1</code>).<br>
+          <span class="ok">Résolution :</span> <code>need_range = true</code> ; sans effet sur le prix car <code>is_free</code> renvoie 0 avant tout calcul (source : <code>classes/Carrier.php:570</code>, <code>classes/Cart.php:3787</code>).</li>
+        <li><span class="err">Erreur :</span> back-office en erreur 500 — <code>appParameters.php</code> introuvable.<br>
+          Cause : <code>bin/console</code> lancé en root a reconstruit <code>var/cache/dev</code> en root, illisible pour <code>www-data</code>.<br>
+          <span class="ok">Résolution :</span> <code>chown -R www-data:www-data var/cache</code> ; désormais <code>docker exec -u www-data … bin/console</code>.</li>
+        <li><span class="err">Erreur :</span> nom du module affiché « Click &amp;amp; Collect ».<br>
+          Cause : <code>$this-&gt;l()</code> applique <code>htmlspecialchars</code> (source : <code>classes/Translate.php:209</code>).<br>
+          <span class="ok">Résolution :</span> nom propre écrit sans <code>l()</code> (il n'a pas à être traduit).</li>
+      </ul>
+    </div>
+    <div class="cols">
+      <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Branche <code>feature/admin-slots</code> : ObjectModel créneau + CRUD admin avec validations (date non passée, fin &gt; début).</li></ul></div>
     </div>
     <h4>Avis</h4>
     <div class="avis"><p class="todo-text">À compléter</p></div>
