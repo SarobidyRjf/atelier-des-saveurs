@@ -450,6 +450,43 @@
     <div class="avis"><p class="todo-text">À compléter</p></div>
   </article>
 
+  <article class="page day" data-date="2026-10-19">
+    <h2 class="tape blue">19/10/2026</h2>
+    <p class="meta">Branche : <code>fix/revue-etapes-1-3</code></p>
+    <h4>Fait</h4>
+    <ul>
+      <li>Relecture du code des étapes 1 à 3 avec vérification dans le cœur de PS 8.2 (conteneur) : 3 bugs et 4 améliorations retenus, 3 « défauts » écartés après vérification.</li>
+      <li>Date passée refusée même écrite sans zéro (<code>2026-9-30</code>) : la date est normalisée en <code>AAAA-MM-JJ</code> avant la comparaison.</li>
+      <li>Une réservation sans commande (panier abandonné) n'est plus comptée : colonne « Réservations » et refus de suppression ne tiennent compte que des lignes avec <code>id_order</code>.</li>
+      <li>Créneau réservé : date et heures verrouillées (message « désactivez-le et créez-en un autre »), seul « actif » reste modifiable.</li>
+      <li><code>tests/reinstall.sh</code> détecte maintenant un échec de <code>prestashop:module</code>.</li>
+      <li>Règle « réservable » écrite à un seul endroit (<code>isBookable</code> réutilise <code>getBookableSlots</code>) ; <code>createCarrier</code> vérifie <code>addZone()</code> et <code>setGroups()</code> ; <code>formatTime</code> ne coupe plus <code>9:30:15</code> ; références de lignes corrigées dans les commentaires.</li>
+      <li>Vérifié : formulaire admin soumis avec curl (date et heure modifiées sur un créneau réservé refusées, ré-enregistrement identique et désactivation acceptés, suppression refusée), <code>isBookable</code> sur 4 cas, lint et <code>reinstall.sh</code> (19 contrôles) au vert, échec simulé détecté (code retour 1).</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions</h4>
+      <ul>
+        <li><span class="err">Erreur :</span> une date passée saisie <code>2026-9-30</code> était acceptée.<br>
+          Cause : <code>Validate::isDate</code> accepte un mois sans zéro (<code>classes/Validate.php:757</code>) et la comparaison de chaînes donne <code>"2026-9-30" &gt; "2026-10-19"</code>.<br>
+          <span class="ok">Résolution :</span> <code>date('Y-m-d', strtotime($date))</code> avant de comparer.</li>
+        <li><span class="err">Erreur :</span> suppression d'un créneau refusée à tort, colonne « Réservations » trop haute.<br>
+          Cause : la réservation est créée dès l'étape livraison ; si le client change de transporteur ou abandonne, la ligne reste sans commande.<br>
+          <span class="ok">Résolution :</span> ne compter que <code>id_order IS NOT NULL</code> ; le nettoyage des lignes orphelines viendra avec <code>actionValidateOrder</code> (étape 4).</li>
+        <li><span class="err">Erreur :</span> <code>reinstall.sh</code> ne voyait pas un échec d'installation.<br>
+          Cause : <code>prestashop:module</code> renvoie toujours 0 (<code>ModuleCommand.php:154</code>).<br>
+          <span class="ok">Résolution :</span> analyse du message (« a réussi » / « succeeded »), affichage de l'erreur sinon.</li>
+        <li><span class="err">Piège évité :</span> trois « défauts » signalés par une première relecture faite sans le conteneur étaient faux (<code>refuseStep</code> par référence fonctionne, guillemets doubles en SQL sans risque, tri sur la colonne calculée sans erreur).<br>
+          <span class="ok">Leçon :</span> vérifier dans le code réel du cœur avant de corriger.</li>
+      </ul>
+    </div>
+    <div class="cols">
+      <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Branche <code>feature/order-slot</code> : rattacher la réservation à la commande, rappel au client, créneau dans la fiche commande admin.</li></ul></div>
+    </div>
+    <h4>Avis</h4>
+    <div class="avis"><p class="todo-text">À compléter</p></div>
+  </article>
+
 </main>
 
 <nav class="pager" aria-label="Pages du journal">
