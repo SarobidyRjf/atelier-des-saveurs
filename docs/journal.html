@@ -289,10 +289,10 @@
         <h3>4 · Créneau sur la commande</h3>
         <p class="meta"><code>feature/order-slot</code></p>
         <ul class="tasks">
-          <li class="task"><code>actionValidateOrder</code> : réservation rattachée à la commande</li>
-          <li class="task"><code>displayOrderConfirmation</code> : rappel au client</li>
-          <li class="task"><code>displayAdminOrderMain</code> : créneau dans la fiche commande</li>
-          <li class="task"><code>actionCarrierUpdate</code> : référence transporteur cohérente</li>
+          <li class="task done"><code>actionValidateOrder</code> : réservation rattachée à la commande <code class="proof">d6d7fb9</code></li>
+          <li class="task done"><code>displayOrderConfirmation</code> : rappel au client <code class="proof">d6d7fb9</code></li>
+          <li class="task done"><code>displayAdminOrderMain</code> : créneau dans la fiche commande <code class="proof">d6d7fb9</code></li>
+          <li class="task done"><code>actionCarrierUpdate</code> : référence transporteur cohérente <code class="proof">d6d7fb9</code></li>
         </ul>
       </section>
 
@@ -452,7 +452,7 @@
 
   <article class="page day" data-date="2026-10-19">
     <h2 class="tape blue">19/10/2026</h2>
-    <p class="meta">Branche : <code>fix/revue-etapes-1-3</code></p>
+    <p class="meta">Branches : <code>fix/revue-etapes-1-3</code>, <code>feature/order-slot</code></p>
     <h4>Fait</h4>
     <ul>
       <li>Relecture du code des étapes 1 à 3 avec vérification dans le cœur de PS 8.2 (conteneur) : 3 bugs et 4 améliorations retenus, 3 « défauts » écartés après vérification.</li>
@@ -462,6 +462,8 @@
       <li><code>tests/reinstall.sh</code> détecte maintenant un échec de <code>prestashop:module</code>.</li>
       <li>Règle « réservable » écrite à un seul endroit (<code>isBookable</code> réutilise <code>getBookableSlots</code>) ; <code>createCarrier</code> vérifie <code>addZone()</code> et <code>setGroups()</code> ; <code>formatTime</code> ne coupe plus <code>9:30:15</code> ; références de lignes corrigées dans les commentaires.</li>
       <li>Vérifié : formulaire admin soumis avec curl (date et heure modifiées sur un créneau réservé refusées, ré-enregistrement identique et désactivation acceptés, suppression refusée), <code>isBookable</code> sur 4 cas, lint et <code>reinstall.sh</code> (19 contrôles) au vert, échec simulé détecté (code retour 1).</li>
+      <li>Étape 4 — créneau sur la commande : <code>actionValidateOrder</code> rattache la réservation à la commande si son transporteur a l'<code>id_reference</code> du Click &amp; Collect, sinon la supprime ; rappel du créneau sur la page de confirmation ; carte « Click &amp; Collect » dans la fiche commande admin — commit <code>d6d7fb9</code>.</li>
+      <li>Vérifié par de vrais parcours client (curl) : commande C&amp;C → <code>id_order</code> rempli ; changement de transporteur avant paiement → réservation orpheline supprimée ; autre transporteur → aucune réservation ni erreur ; transporteur dupliqué (nouvel <code>id_carrier</code>, même <code>id_reference</code>) → commande bien rattachée ; confirmation et fiche admin n'affichent le créneau que pour les commandes C&amp;C ; lint et <code>reinstall.sh</code> au vert.</li>
     </ul>
     <div class="postit">
       <h4>Erreurs &amp; résolutions</h4>
@@ -481,7 +483,7 @@
     </div>
     <div class="cols">
       <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
-      <div><h4>Prochaine étape</h4><ul><li>Branche <code>feature/order-slot</code> : rattacher la réservation à la commande, rappel au client, créneau dans la fiche commande admin.</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Branche <code>docs/tests-readme</code> (étape 5) : créneaux de démo, <code>tests/TESTS.md</code>, README.</li></ul></div>
     </div>
     <h4>Avis</h4>
     <div class="avis"><p class="todo-text">À compléter</p></div>
