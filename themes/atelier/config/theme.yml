@@ -1,0 +1,61 @@
+# Thème enfant « atelier » de L'Atelier des Saveurs.
+#
+# Attention : le cœur fusionne ce fichier avec celui du parent par un
+# array_merge de PREMIER NIVEAU (src/Core/Addon/Theme/Theme.php:61).
+# Une clé écrite ici REMPLACE donc toute la clé du parent ; une clé absente
+# est héritée telle quelle. D'où les deux règles ci-dessous :
+#  - « global_settings » est volontairement ABSENT : on hérite ainsi des
+#    types d'images et de l'affectation des hooks de Classic (sans quoi
+#    tous les modules du front perdraient leur position).
+#  - « meta » et « theme_settings » sont réécrits EN ENTIER, y compris les
+#    parties inchangées, car la fusion ne descend pas dans les sous-clés.
+
+name: atelier
+display_name: Atelier des Saveurs
+version: 1.0.0
+parent: classic
+
+author:
+  name: "Sarobidy"
+  email: "contact@atelier-des-saveurs.test"
+  url: "http://localhost:8080"
+
+assets:
+  # Charge theme.css et theme.js de Classic (Bootstrap 4, Material Icons,
+  # JS du menu mobile). Notre assets/css/custom.css est ajouté par-dessus
+  # automatiquement par le cœur (FrontController.php:980, priorité 1000).
+  use_parent_assets: true
+
+meta:
+  compatibility:
+    from: 8.2.1
+    to: ~
+
+  # Recopiés de Classic : le validateur exige meta.available_layouts
+  # (src/Core/Addon/Theme/ThemeValidator.php:88).
+  available_layouts:
+    layout-full-width:
+      name: Pleine largeur
+      description: Aucune colonne latérale, idéal pour les pages sans distraction comme les fiches produit.
+    layout-both-columns:
+      name: Trois colonnes
+      description: Une grande colonne centrale et 2 colonnes latérales.
+    layout-left-column:
+      name: Deux colonnes, petite colonne à gauche
+      description: Deux colonnes avec une petite colonne à gauche.
+    layout-right-column:
+      name: Deux colonnes, petite colonne à droite
+      description: Deux colonnes avec une petite colonne à droite.
+
+theme_settings:
+  default_layout: layout-full-width
+
+  # Classic met ces pages en layout-left-column, ce qui y affiche l'arbre
+  # de catégories et les blocs Marques/Fournisseurs. Le design visé est
+  # pleine largeur : on les repasse donc toutes en layout-full-width.
+  layouts:
+    category: layout-full-width
+    best-sales: layout-full-width
+    new-products: layout-full-width
+    prices-drop: layout-full-width
+    contact: layout-full-width
