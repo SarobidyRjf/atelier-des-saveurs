@@ -48,10 +48,35 @@ class NkClickCollectBooking extends ObjectModel
      */
     public static function getByCart($idCart)
     {
+        return self::findBy('id_cart', $idCart);
+    }
+
+    /**
+     * Réservation rattachée à une commande (confirmation client, fiche commande admin).
+     *
+     * @param int $idOrder
+     *
+     * @return NkClickCollectBooking|null
+     */
+    public static function getByOrder($idOrder)
+    {
+        return self::findBy('id_order', $idOrder);
+    }
+
+    /**
+     * Première réservation dont la colonne donnée vaut l'identifiant.
+     *
+     * @param string $column Nom de colonne écrit dans le code (id_cart ou id_order), jamais une saisie utilisateur
+     * @param int $id
+     *
+     * @return NkClickCollectBooking|null
+     */
+    private static function findBy($column, $id)
+    {
         $query = (new DbQuery())
             ->select('id_booking')
             ->from('nk_clickcollect_booking')
-            ->where('id_cart = ' . (int) $idCart);
+            ->where(bqSQL($column) . ' = ' . (int) $id);
         $idBooking = (int) Db::getInstance()->getValue($query, false);
 
         return $idBooking ? new self($idBooking) : null;
