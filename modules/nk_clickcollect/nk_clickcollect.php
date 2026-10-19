@@ -35,7 +35,7 @@ class Nk_Clickcollect extends Module
 
     /**
      * Onglet admin « Commandes > Click & Collect » : créé à l'installation et retiré
-     * à la désinstallation automatiquement par PrestaShop (src/Adapter/Module/Tab/ModuleTabRegister.php).
+     * à la désinstallation automatiquement par PrestaShop (src/Adapter/Module/Tab/ModuleTabUnregister.php).
      *
      * @var array
      */
@@ -134,9 +134,13 @@ class Nk_Clickcollect extends Module
         $carrier->id_reference = (int) $carrier->id;
 
         foreach (Zone::getZones(true) as $zone) {
-            $carrier->addZone((int) $zone['id_zone']);
+            if (!$carrier->addZone((int) $zone['id_zone'])) {
+                return false;
+            }
         }
-        $carrier->setGroups(array_column(Group::getGroups((int) $this->context->language->id), 'id_group'));
+        if (!$carrier->setGroups(array_column(Group::getGroups((int) $this->context->language->id), 'id_group'))) {
+            return false;
+        }
 
         // On garde id_reference et non id_carrier : l'id change à chaque modification en admin.
         return Configuration::updateValue(self::CONFIG_CARRIER_REF, $carrier->id_reference);

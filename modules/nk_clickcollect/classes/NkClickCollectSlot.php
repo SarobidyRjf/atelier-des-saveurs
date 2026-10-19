@@ -88,15 +88,18 @@ class NkClickCollectSlot extends ObjectModel
      */
     public static function isBookable($idSlot)
     {
-        $slot = new self((int) $idSlot);
+        // On réutilise getBookableSlots() : la règle « réservable » n'est écrite qu'à un seul endroit.
+        foreach (self::getBookableSlots() as $slot) {
+            if ((int) $slot['id_slot'] === (int) $idSlot) {
+                return true;
+            }
+        }
 
-        return Validate::isLoadedObject($slot)
-            && $slot->active
-            && strtotime($slot->slot_date . ' ' . $slot->time_start) > time();
+        return false;
     }
 
     /**
-     * Nombre de réservations liées à un créneau.
+     * Nombre de réservations liées à un créneau et rattachées à une commande.
      *
      * @param int $idSlot
      *
@@ -107,7 +110,8 @@ class NkClickCollectSlot extends ObjectModel
         $query = (new DbQuery())
             ->select('COUNT(*)')
             ->from('nk_clickcollect_booking')
-            ->where('id_slot = ' . (int) $idSlot);
+            ->where('id_slot = ' . (int) $idSlot)
+            ->where('id_order IS NOT NULL'); // sans id_order : panier abandonné, pas une vraie réservation
 
         return (int) Db::getInstance()->getValue($query);
     }

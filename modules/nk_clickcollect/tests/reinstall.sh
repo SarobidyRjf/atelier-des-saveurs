@@ -25,8 +25,16 @@ check() {
 }
 
 # Console PrestaShop lancée en www-data : en root, elle laisserait un cache illisible par le serveur web.
+# La commande renvoie toujours 0, même en cas d'échec (ModuleCommand.php:154) : on analyse donc son message
+# (traduit : « a réussi » en français, « succeeded » en anglais) et on affiche la cause si elle a échoué.
 console() {
-    docker exec -u www-data prestashop php bin/console prestashop:module "$1" "$MODULE" > /dev/null 2>&1
+    local out
+    out=$(docker exec -u www-data prestashop php bin/console prestashop:module "$1" "$MODULE" 2>&1)
+    if echo "$out" | grep -qE 'a réussi|succeeded'; then
+        return 0
+    fi
+    echo "$out" | tr -s ' \n' | sed 's/^/         /'
+    return 1
 }
 
 check_installed() {
