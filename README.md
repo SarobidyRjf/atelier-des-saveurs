@@ -62,10 +62,14 @@ docker exec prestashop rm -rf var/cache/dev var/cache/prod
 docker exec prestashop chown -R www-data:www-data var/cache var/logs
 ```
 
-Le dossier `themes/atelier/assets/cache/` doit appartenir à `www-data` : le cœur y écrit les feuilles de style concaténées, et il est monté depuis l'hôte. Si l'accueil renvoie `Failed to create ".../assets/cache/": mkdir(): Permission denied` :
+Le dossier `themes/atelier/assets/cache/` doit **exister** : le cœur construit un `CccReducer` à chaque requête et le crée s'il manque (`classes/assets/CccReducer.php:52`, appelé depuis `classes/controller/FrontController.php:226`). Il est donc versionné, avec un `.gitignore` qui n'y garde que lui-même et `index.php`.
+
+Il n'a pas besoin d'être inscriptible par `www-data` tant que la concaténation des assets (CCC) est désactivée, ce qui est le réglage par défaut : le cœur n'y écrit rien. **Ne pas** le donner à `www-data` — le dossier étant monté depuis l'hôte, Git ne pourrait plus le supprimer et un `git switch` échouerait avec `unable to unlink … Permission denied`, laissant le thème à moitié effacé.
+
+Si l'accueil renvoie malgré tout `Failed to create ".../assets/cache/": mkdir(): Permission denied`, c'est que le dossier a disparu : le recréer suffit.
 
 ```bash
-docker exec prestashop chown -R www-data:www-data themes/atelier/assets/cache
+mkdir -p themes/atelier/assets/cache
 ```
 
 ### Accès
@@ -152,7 +156,12 @@ Hooks utilisés : `displayCarrierExtraContent` (créneaux sous le transporteur),
 - Bonus non réalisés : places limitées par créneau, actualisation AJAX, refus des créneaux complets.
 
 ## Dépannage
-- **`prestashop … (unhealthy)`** : le module ou le thème est vide dans le conteneur (montage cassé, fréquent après un `git switch` ou un redémarrage de Windows). Vérifier : `docker exec prestashop ls -A modules/nk_clickcollect themes/atelier`. Réparer : `docker compose up -d --force-recreate prestashop`.
+- **Thème ou module vide dans le conteneur** (montage cassé). Arrive après un `git switch` : Git supprime puis recrée le dossier, et Docker reste accroché à l'ancien. Le conteneur peut rester `healthy` et la boutique répondre **sans le thème**. Vérifier que les deux côtés concordent :
+  ```bash
+  find themes/atelier -type f | wc -l          # sur l'hôte
+  docker exec prestashop ls -A themes/atelier  # dans le conteneur
+  ```
+  Réparer : `docker compose up -d --force-recreate prestashop`, puis vider le cache.
 - **Back-office en erreur 500 (`appParameters.php` introuvable)** : la console a été lancée en root. Réparer : `docker exec prestashop chown -R www-data:www-data var/cache var/logs`.
 - **Vider le cache** : `docker exec prestashop rm -rf var/cache/dev var/cache/prod`.
 - **Tout effacer et recommencer** : `docker compose down -v` supprime la boutique **et** la base (volumes `psdata` et `dbdata`).
