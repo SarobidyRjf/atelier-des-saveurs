@@ -268,8 +268,9 @@ class Nk_Clickcollect extends Module
     }
 
     /**
-     * Rien à faire : le transporteur est retrouvé par son id_reference, qui ne change pas
-     * quand on le modifie en admin (seul l'id_carrier change). Justification complétée à l'étape feature/order-slot.
+     * Volontairement vide : on stocke l'id_reference (NK_CLICKCOLLECT_CARRIER_REF) et non l'id_carrier.
+     * Quand l'admin modifie le transporteur, PrestaShop en crée un nouveau (nouvel id_carrier) mais copie
+     * l'id_reference (classes/Carrier.php:1060-1075) : la configuration reste donc valable sans rien mettre à jour.
      *
      * @param array $params ['id_carrier' => int (ancien id), 'carrier' => Carrier (nouveau)]
      */
@@ -278,35 +279,82 @@ class Nk_Clickcollect extends Module
     }
 
     /**
-     * Rattache la réservation du panier à la commande créée (étape feature/order-slot).
+     * Rattache la réservation du panier à la commande créée, si cette commande est en Click & Collect.
+     * Sinon (le client a changé de transporteur après avoir choisi un créneau) la réservation est supprimée.
+     * Appelé une fois par commande créée (classes/PaymentModule.php:560) : une réservation déjà rattachée
+     * n'est jamais modifiée, ce qui protège le cas d'un panier scindé en plusieurs commandes.
      *
      * @param array $params ['cart' => Cart, 'order' => Order, 'customer' => Customer, ...] (classes/PaymentModule.php:560)
      */
     public function hookActionValidateOrder($params)
     {
+        $order = $params['order'];
+        $booking = NkClickCollectBooking::getByCart((int) $order->id_cart);
+        if (!$booking || $booking->id_order) {
+            return;
+        }
+
+        // On compare l'id_reference du transporteur de la commande : l'id_carrier change à chaque édition en admin.
+        $carrier = new Carrier((int) $order->id_carrier);
+        if ($this->isClickCollectReference($carrier->id_reference)) {
+            $booking->id_order = (int) $order->id;
+            $booking->save();
+        } else {
+            $booking->delete();
+        }
     }
 
     /**
-     * Rappelle le créneau au client sur la page de confirmation (étape feature/order-slot).
+     * Rappelle le créneau au client sur la page de confirmation de commande.
      *
      * @param array $params ['order' => Order] (controllers/front/OrderConfirmationController.php:259)
      *
-     * @return string
+     * @return string HTML, vide si la commande n'a pas de créneau
      */
     public function hookDisplayOrderConfirmation($params)
     {
-        return '';
+        return $this->renderOrderSlot((int) $params['order']->id, 'order_confirmation.tpl');
     }
 
     /**
-     * Affiche le créneau dans la fiche commande de l'administration (étape feature/order-slot).
+     * Affiche le créneau dans la fiche commande de l'administration.
      *
      * @param array $params ['id_order' => int] (Admin/Sell/Order/Order/view.html.twig:73)
      *
-     * @return string
+     * @return string HTML, vide si la commande n'a pas de créneau
      */
     public function hookDisplayAdminOrderMain($params)
     {
-        return '';
+        return $this->renderOrderSlot((int) $params['id_order'], 'admin_order.tpl');
+    }
+
+    /**
+     * Affiche le créneau d'une commande avec le template donné (partagé par la confirmation et l'admin).
+     *
+     * @param int $idOrder
+     * @param string $template Fichier de views/templates/hook/
+     *
+     * @return string HTML, vide si la commande n'a pas de réservation (autre transporteur)
+     */
+    private function renderOrderSlot($idOrder, $template)
+    {
+        $booking = NkClickCollectBooking::getByOrder($idOrder);
+        if (!$booking) {
+            return '';
+        }
+        $slot = new NkClickCollectSlot((int) $booking->id_slot);
+        if (!Validate::isLoadedObject($slot)) {
+            return '';
+        }
+
+        $this->context->smarty->assign([
+            'nk_slot' => [
+                'date' => Tools::displayDate($slot->slot_date),
+                'start' => substr($slot->time_start, 0, 5),
+                'end' => substr($slot->time_end, 0, 5),
+            ],
+        ]);
+
+        return $this->fetch('module:nk_clickcollect/views/templates/hook/' . $template);
     }
 }
