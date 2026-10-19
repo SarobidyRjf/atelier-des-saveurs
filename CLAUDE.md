@@ -22,7 +22,7 @@ Ce fichier guide Claude Code (claude.ai/code) lorsqu'il travaille sur le code de
   (`backup.sql` et `backup-img/` à la racine sont des sauvegardes locales ignorées par Git.)
 - Tests, sans aucune dépendance (pas de PHPUnit/PHPStan/Composer, choix assumé) :
   - Lint : `modules/nk_clickcollect/tests/lint.sh` (`php -l` sur chaque fichier PHP du module, dans le conteneur ; code retour 1 si erreur).
-  - Réinstallation : `modules/nk_clickcollect/tests/reinstall.sh` enchaîne install → vérifications → uninstall → vérifications → install → vérifications (module, tables, transporteur actif + `NK_CLICKCOLLECT_CARRIER_REF`, onglet admin, 6 hooks ; après uninstall : tables supprimées, transporteur conservé avec `deleted = 1`, onglet retiré). Les tables étant supprimées à la désinstallation, elles sont **recréées** (vides, puis données de démo à l'étape 5). Couvre l'exigence « y compris après une réinstallation ».
+  - Réinstallation : `modules/nk_clickcollect/tests/reinstall.sh` enchaîne install → vérifications → uninstall → vérifications → install → vérifications (module, tables, transporteur actif + `NK_CLICKCOLLECT_CARRIER_REF`, onglet admin, 6 hooks ; après uninstall : tables supprimées, transporteur conservé avec `deleted = 1`, onglet retiré). Les tables étant supprimées à la désinstallation, elles sont **recréées** avec les 14 créneaux de démo de `sql/demo.php` (7 jours à partir de demain, 2 par jour, 1 inactif) : toute donnée saisie à la main est perdue. Couvre l'exigence « y compris après une réinstallation ».
   - Les deux scripts se lancent depuis l'hôte, à la racine du dépôt, avant chaque commit.
   - Parcours client (créneau, erreurs, commande, fiche admin) : scénarios manuels dans `modules/nk_clickcollect/tests/TESTS.md`.
 
