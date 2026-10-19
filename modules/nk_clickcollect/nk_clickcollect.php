@@ -71,7 +71,7 @@ class Nk_Clickcollect extends Module
 
     /**
      * Installe le module : enregistrement auprès de PrestaShop (et de l'onglet $tabs),
-     * puis tables, transporteur et hooks.
+     * puis tables, créneaux de démo, transporteur et hooks.
      * S'arrête au premier échec (opérateur && évalué de gauche à droite).
      *
      * @return bool
@@ -86,6 +86,7 @@ class Nk_Clickcollect extends Module
         // Parenthèses obligatoires : sans elles, include engloberait toute la suite de l'expression.
         return parent::install()
             && (include __DIR__ . '/sql/install.php')
+            && (include __DIR__ . '/sql/demo.php')
             && $this->createCarrier()
             && $this->registerHook(self::HOOKS);
     }

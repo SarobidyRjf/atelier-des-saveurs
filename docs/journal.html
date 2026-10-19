@@ -300,9 +300,9 @@
         <h3>5 · Tests &amp; documentation</h3>
         <p class="meta"><code>docs/tests-readme</code></p>
         <ul class="tasks">
-          <li class="task"><code>tests/TESTS.md</code> : scénarios manuels</li>
-          <li class="task">Créneaux de démo (<code>sql/demo.php</code>)</li>
-          <li class="task">README : installation, prérequis, lancement, choix techniques, tests</li>
+          <li class="task done"><code>tests/TESTS.md</code> : scénarios manuels <code class="proof">b825e57</code></li>
+          <li class="task done">Créneaux de démo (<code>sql/demo.php</code>) <code class="proof">b825e57</code></li>
+          <li class="task done">README : installation, prérequis, lancement, choix techniques, tests <code class="proof">b825e57</code></li>
         </ul>
       </section>
 
@@ -452,7 +452,7 @@
 
   <article class="page day" data-date="2026-10-19">
     <h2 class="tape blue">19/10/2026</h2>
-    <p class="meta">Branches : <code>fix/revue-etapes-1-3</code>, <code>feature/order-slot</code></p>
+    <p class="meta">Branches : <code>fix/revue-etapes-1-3</code>, <code>feature/order-slot</code>, <code>docs/tests-readme</code></p>
     <h4>Fait</h4>
     <ul>
       <li>Relecture du code des étapes 1 à 3 avec vérification dans le cœur de PS 8.2 (conteneur) : 3 bugs et 4 améliorations retenus, 3 « défauts » écartés après vérification.</li>
@@ -464,6 +464,8 @@
       <li>Vérifié : formulaire admin soumis avec curl (date et heure modifiées sur un créneau réservé refusées, ré-enregistrement identique et désactivation acceptés, suppression refusée), <code>isBookable</code> sur 4 cas, lint et <code>reinstall.sh</code> (19 contrôles) au vert, échec simulé détecté (code retour 1).</li>
       <li>Étape 4 — créneau sur la commande : <code>actionValidateOrder</code> rattache la réservation à la commande si son transporteur a l'<code>id_reference</code> du Click &amp; Collect, sinon la supprime ; rappel du créneau sur la page de confirmation ; carte « Click &amp; Collect » dans la fiche commande admin — commit <code>d6d7fb9</code>.</li>
       <li>Vérifié par de vrais parcours client (curl) : commande C&amp;C → <code>id_order</code> rempli ; changement de transporteur avant paiement → réservation orpheline supprimée ; autre transporteur → aucune réservation ni erreur ; transporteur dupliqué (nouvel <code>id_carrier</code>, même <code>id_reference</code>) → commande bien rattachée ; confirmation et fiche admin n'affichent le créneau que pour les commandes C&amp;C ; lint et <code>reinstall.sh</code> au vert.</li>
+      <li>Étape 5 — créneaux de démo (<code>sql/demo.php</code> : 14 créneaux sur 7 jours à partir de demain, dont 1 inactif, recréés à chaque installation), scénarios manuels <code>tests/TESTS.md</code> (T0 à T11), <code>README.md</code> du dépôt et du module — commit <code>b825e57</code>.</li>
+      <li>Vérifié : <code>reinstall.sh</code> contrôle maintenant les 14 créneaux à l'installation et à la réinstallation ; README suivi de zéro sur une pile Docker isolée (ports et volumes différents, supprimée ensuite) : installation du module, 14 créneaux, créneaux affichés (13 actifs, l'inactif absent), 4 refus avec message, commande C&amp;C avec confirmation, autre transporteur, changement de transporteur, liste admin et clé de sécurité invalide.</li>
     </ul>
     <div class="postit">
       <h4>Erreurs &amp; résolutions</h4>
@@ -477,13 +479,20 @@
         <li><span class="err">Erreur :</span> <code>reinstall.sh</code> ne voyait pas un échec d'installation.<br>
           Cause : <code>prestashop:module</code> renvoie toujours 0 (<code>ModuleCommand.php:154</code>).<br>
           <span class="ok">Résolution :</span> analyse du message (« a réussi » / « succeeded »), affichage de l'erreur sinon.</li>
+        <li><span class="err">Erreur :</span> connexion au back-office impossible après restauration de <code>data/dump.sql</code> avec les identifiants du <code>.env</code>.<br>
+          Cause : le dump remplace toute la base, y compris le compte administrateur.<br>
+          <span class="ok">Résolution :</span> commande du README qui réinitialise l'employé 1 avec <code>ADMIN_MAIL</code> / <code>ADMIN_PASSWD</code> (<code>Hashing::hash</code>, <code>src/Core/Crypto/Hashing.php:90</code>).</li>
+        <li><span class="err">Erreur :</span> redirection vers le port 8080 quand la boutique tourne sur un autre port.<br>
+          Cause : le dump enregistre l'adresse <code>localhost:8080</code> (<code>ps_shop_url</code>).<br>
+          <span class="ok">Résolution :</span> README : garder <code>PS_PORT=8080</code>.</li>
+        <li><span class="err">Constat :</span> le module n'est pas dans le dump (daté du 14/10) : il faut l'installer après la restauration (<code>prestashop:module install nk_clickcollect</code>). Le dump contient 3 produits et 1 catégorie, et non 12 produits / 3 catégories comme noté plus haut : à corriger.</li>
         <li><span class="err">Piège évité :</span> trois « défauts » signalés par une première relecture faite sans le conteneur étaient faux (<code>refuseStep</code> par référence fonctionne, guillemets doubles en SQL sans risque, tri sur la colonne calculée sans erreur).<br>
           <span class="ok">Leçon :</span> vérifier dans le code réel du cœur avant de corriger.</li>
       </ul>
     </div>
     <div class="cols">
       <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
-      <div><h4>Prochaine étape</h4><ul><li>Branche <code>docs/tests-readme</code> (étape 5) : créneaux de démo, <code>tests/TESTS.md</code>, README.</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Partie boutique : thème <code>atelier</code> (encore vide), catalogue, vidéo de démonstration, bilan personnel, PR finale <code>develop</code> → <code>main</code>.</li></ul></div>
     </div>
     <h4>Avis</h4>
     <div class="avis"><p class="todo-text">À compléter</p></div>

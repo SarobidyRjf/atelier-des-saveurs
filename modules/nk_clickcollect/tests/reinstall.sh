@@ -43,6 +43,10 @@ check_installed() {
     check "module enregistré" "$(q "SELECT COUNT(*) FROM ${PREFIX}module WHERE name = '$MODULE'")" "1"
     check "table des créneaux" "$(q "SHOW TABLES LIKE '${PREFIX}nk_clickcollect_slot'")" "${PREFIX}nk_clickcollect_slot"
     check "table des réservations" "$(q "SHOW TABLES LIKE '${PREFIX}nk_clickcollect_booking'")" "${PREFIX}nk_clickcollect_booking"
+    check "14 créneaux de démo, dont 1 inactif" \
+        "$(q "SELECT CONCAT(COUNT(*), '/', SUM(active = 0)) FROM ${PREFIX}nk_clickcollect_slot")" "14/1"
+    check "créneaux de démo tous dans le futur" \
+        "$(q "SELECT COUNT(*) FROM ${PREFIX}nk_clickcollect_slot WHERE slot_date <= '$(docker exec prestashop date +%F)'")" "0"
     check "référence transporteur en configuration" "$([ -n "$ref" ] && echo présente)" "présente"
     check "transporteur actif, lié au module" \
         "$(q "SELECT COUNT(*) FROM ${PREFIX}carrier WHERE id_reference = '${ref:-0}' AND deleted = 0 AND active = 1 AND is_module = 1 AND need_range = 1 AND external_module_name = '$MODULE'")" "1"
