@@ -33,8 +33,9 @@ class AdminNkClickCollectSlotsController extends ModuleAdminController
         parent::__construct();
 
         // Colonne calculée : nombre de réservations du créneau (explique pourquoi une suppression est refusée).
+        // Seules comptent celles rattachées à une commande : une ligne sans id_order est un panier abandonné.
         $this->_select = '(SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'nk_clickcollect_booking` b
-            WHERE b.`id_slot` = a.`id_slot`) AS nb_bookings';
+            WHERE b.`id_slot` = a.`id_slot` AND b.`id_order` IS NOT NULL) AS nb_bookings';
 
         $this->fields_list = [
             'id_slot' => ['title' => 'ID', 'align' => 'center', 'class' => 'fixed-width-xs'],
@@ -151,7 +152,7 @@ class AdminNkClickCollectSlotsController extends ModuleAdminController
     /**
      * Règles métier vérifiées côté serveur à l'ajout et à la modification d'un créneau.
      * Appelée par AdminController::validateRules() après les contrôles du cœur (champs requis, isDate) :
-     * toute erreur ajoutée ici réaffiche le formulaire avec la saisie (classes/controller/AdminController.php:3733).
+     * toute erreur ajoutée ici réaffiche le formulaire avec la saisie (classes/controller/AdminController.php:3730).
      */
     protected function _childValidation()
     {
@@ -173,6 +174,12 @@ class AdminNkClickCollectSlotsController extends ModuleAdminController
             }
         }
 
+        // Validate::isDate accepte « 2026-9-30 » (classes/Validate.php:757) : on normalise en AAAA-MM-JJ
+        // sinon la comparaison de chaînes est fausse (« 2026-9-30 » > « 2026-10-19 »).
+        if (Validate::isDate($date)) {
+            $date = date('Y-m-d', strtotime($date));
+        }
+
         if (Validate::isDate($date) && $date < $today) {
             $this->errors[] = $this->text('La date du créneau ne peut pas être dans le passé.');
         }
@@ -180,6 +187,21 @@ class AdminNkClickCollectSlotsController extends ModuleAdminController
         // Les heures vides sont déjà signalées par le cœur (champs requis).
         if ($start === '' || $end === '') {
             return;
+        }
+
+        // Modification d'un créneau réservé : date et heures verrouillées (la commande pointe vers ce créneau
+        // par son id, le client serait attendu au mauvais moment). Seul « actif » reste modifiable.
+        $idSlot = (int) Tools::getValue($this->identifier);
+        if ($idSlot > 0 && NkClickCollectSlot::countBookings($idSlot) > 0) {
+            $slot = new NkClickCollectSlot($idSlot);
+            if (Validate::isLoadedObject($slot)
+                && (strtotime($date) !== strtotime($slot->slot_date)
+                    || strtotime('1970-01-01 ' . $start) !== strtotime('1970-01-01 ' . $slot->time_start)
+                    || strtotime('1970-01-01 ' . $end) !== strtotime('1970-01-01 ' . $slot->time_end))) {
+                $this->errors[] = $this->text('Ce créneau a des réservations : désactivez-le et créez-en un autre.');
+
+                return;
+            }
         }
         if (!NkClickCollectSlot::isValidTime($start) || !NkClickCollectSlot::isValidTime($end)) {
             $this->errors[] = $this->text('Les heures doivent être au format HH:MM, par exemple 10:00.');
@@ -215,13 +237,14 @@ class AdminNkClickCollectSlotsController extends ModuleAdminController
      */
     public function formatTime($value)
     {
-        return substr((string) $value, 0, 5);
+        // On ne retire que des secondes réelles : substr couperait « 9:30:15 » en « 9:30: ».
+        return preg_replace('/^(\d{1,2}:\d{2}):\d{2}$/', '$1', (string) $value);
     }
 
     /**
      * Texte traduisible du contrôleur. $this->l() est déprécié dans ModuleAdminController en 8.2
-     * (classes/controller/ModuleAdminController.php:100) : on passe par la traduction du module,
-     * avec ce contrôleur comme source (classes/Translate.php:54).
+     * (classes/controller/ModuleAdminController.php:104) : on passe par la traduction du module,
+     * avec ce contrôleur comme source (classes/Translate.php:181).
      *
      * @param string $string
      *
