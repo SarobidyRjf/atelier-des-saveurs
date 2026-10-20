@@ -29,14 +29,18 @@ Si `prestashop` reste `(unhealthy)`, voir « Dépannage ».
 ```bash
 docker exec -i some-mysql sh -c 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' < data/dump.sql
 docker cp data/img-products/. prestashop:/var/www/html/img/p/
-docker exec prestashop chown -R www-data:www-data img/p
+docker cp data/img-categories/. prestashop:/var/www/html/img/c/
+docker exec prestashop chown -R www-data:www-data img/p img/c
 docker exec prestashop rm -rf var/cache/dev var/cache/prod
 docker exec prestashop chown -R www-data:www-data var/cache var/logs
 ```
 
-Deux conséquences de cette restauration (le dump remplace toute la base) :
+Le dump contient **2 catégories et 8 produits** (dont 3 à déclinaisons), leurs photos, les bannières de catégorie et l'historique des ventes qui alimente la section « Meilleures ventes ». Il ne contient **ni commande, ni client, ni panier** : ce sont des données de test, et le dépôt est public.
+
+Trois conséquences de cette restauration (le dump remplace toute la base) :
 - **Garder `PS_PORT=8080`** dans `.env` : le dump enregistre l'adresse de la boutique `localhost:8080`, un autre port provoque des redirections vers le port 8080.
-- **Le compte administrateur est celui du dump**, pas celui de `.env` : le réinitialiser avec les identifiants de `.env` (déjà présents dans l'environnement du conteneur) :
+- **Aucun transporteur n'est actif** tant que le module n'est pas installé : c'est lui qui crée « Retrait en boutique ». L'étape suivante s'en charge.
+- **Le compte administrateur du dump est neutralisé** (`admin@example.com`, empreinte de mot de passe invalide : aucun identifiant personnel n'est versionné). Le réinitialiser avec ceux de `.env`, déjà présents dans l'environnement du conteneur :
 
 ```bash
 docker exec -u www-data prestashop php -r 'require "/var/www/html/config/config.inc.php"; $e = new Employee(1); $e->email = getenv("ADMIN_MAIL"); $e->passwd = (new PrestaShop\PrestaShop\Core\Crypto\Hashing())->hash(getenv("ADMIN_PASSWD"), _COOKIE_KEY_); $e->last_passwd_gen = date("Y-m-d H:i:s", strtotime("-1 day")); echo $e->update() ? "admin mis à jour\n" : "échec\n";'
@@ -150,6 +154,7 @@ Hooks utilisés : `displayCarrierExtraContent` (créneaux sous le transporteur),
 ## Limites connues
 - **Le créneau n'est pas modifiable après la commande**, ni par le client ni par l'administrateur : en cas d'imprévu, la boutique contacte le client.
 - Un créneau désactivé ou dépassé **entre** l'étape livraison et le paiement n'empêche pas la commande (`actionValidateOrder` arrive trop tard pour la bloquer).
+- La validation du créneau s'appuie sur `actionValidateStepComplete`, qui ne se déclenche **que si l'étape Livraison est soumise**. En appelant directement l'URL de validation d'un module de paiement (`/module/ps_checkpayment/validation`) après avoir saisi une adresse, on obtient donc une commande Click & Collect sans créneau : le contrôleur de paiement ne vérifie que le client et les adresses (`modules/ps_checkpayment/controllers/front/validation.php:42`), et le transporteur est affecté d'office puisqu'un seul est disponible. Le cas n'est pas atteignable en naviguant normalement, mais il l'est en forgeant la requête. Le corriger demanderait un contrôle **avant** la création de la commande, donc un hook que le périmètre du cahier des charges ne prévoit pas : `actionValidateOrder` intervient quand la commande existe déjà et ne pourrait que la signaler.
 - Un créneau qui a des réservations ne peut être ni supprimé ni déplacé : il se désactive.
 - Désinstaller le module supprime ses tables : les anciennes commandes n'affichent plus leur créneau. Chaque réinstallation laisse aussi un transporteur « Retrait en boutique » supplémentaire marqué supprimé.
 - `hookActionCarrierUpdate` est vide volontairement (grâce à l'`id_reference`, rien à mettre à jour).

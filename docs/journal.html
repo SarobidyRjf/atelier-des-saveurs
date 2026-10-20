@@ -587,9 +587,32 @@
           <span class="ok">Résolution :</span> réinstallation sur <code>updatedAddressForm</code> et <code>updatedDeliveryForm</code>, avec recréation du bouton à partir du libellé relevé dans le gabarit — pour qu'aucun texte ne soit écrit en dur dans le JavaScript.</li>
       </ul>
     </div>
+    <h4>Fait — étape 4 : données reproductibles</h4>
+    <ul>
+      <li><code>data/dump.sql</code> régénéré depuis une <strong>copie temporaire</strong> de la base, nettoyée puis supprimée : la base de développement n'a jamais été modifiée. Il contient désormais la réalité — <strong>8 produits, 2 catégories, 3 produits à déclinaisons</strong> — au lieu des 3 produits et 1 catégorie d'un dump daté du 14/10.</li>
+      <li><strong>Plus aucune donnée personnelle</strong> : quatre emplacements neutralisés (compte administrateur, <code>PS_LOGS_EMAIL_RECEIVERS</code>, <code>MA_MERCHANT_MAILS</code> et les deux lignes de <code>ps_contact</code>). L'empreinte du mot de passe admin est remplacée par une valeur invalide, que le README réinitialise. Commandes, clients et paniers vidés.</li>
+      <li><code>data/img-products</code> ramené de <strong>293 à 45 fichiers</strong> : la quasi-totalité étaient les images par défaut des 40 langues de PrestaShop, déjà présentes après une installation neuve. Ajout de <code>data/img-categories</code> (6 fichiers) pour les bannières, qui n'était pas prévu.</li>
+      <li><strong>Validé sur une pile Docker isolée</strong>, README suivi depuis zéro : installation automatique, restauration, réinitialisation de l'administrateur, installation du module, activation du thème. Résultat conforme — thème appliqué, 14 créneaux générés à l'installation donc dans le futur, 6 meilleures ventes conservées, aucun bloc de démonstration, back-office accessible avec l'onglet Click &amp; Collect. Parcours client complet rejoué avec un compte créé de zéro : refus correct sans créneau, puis commande avec le créneau rattaché. Pile démontée ensuite, pile de développement intacte (42 commandes, 26 réservations retrouvées).</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions — étape 4</h4>
+      <ul>
+        <li><span class="err">Décision :</span> le dump ne contient <strong>pas</strong> le module.<br>
+          Raison : il crée ses 14 créneaux de démonstration à l'installation, « 7 jours à partir de demain ». Livré dans le dump, ils seraient figés à la date d'export et périmés dès le mois suivant — la démonstration du Click &amp; Collect tomberait à plat. Le README l'installe donc après la restauration.</li>
+        <li><span class="err">Décision :</span> la table <code>ps_product_sale</code> est <strong>conservée</strong> alors que toutes les commandes sont supprimées.<br>
+          Raison : c'est un agrégat, pas une commande, et c'est elle qui alimente « Meilleures ventes ». Sans elle, <code>ps_bestsellers</code> ne rend aucun balisage et l'accueil perd une section.</li>
+        <li><span class="err">Erreur :</span> <code>Unknown column 'id_module'</code> en nettoyant <code>ps_module_access</code>.<br>
+          Cause : en PS 8, les droits ne passent plus par <code>id_module</code> ni <code>id_tab</code> mais par des <strong>rôles d'autorisation</strong> (<code>ps_authorization_role</code>). Le module laissait 8 rôles derrière lui.<br>
+          <span class="ok">Résolution :</span> suppression via <code>slug LIKE 'ROLE_MOD_MODULE_NK_CLICKCOLLECT%'</code> et son équivalent pour l'onglet.</li>
+        <li><span class="err">Trouvé pendant le test :</span> en appelant directement <code>/module/ps_checkpayment/validation</code> après avoir saisi une adresse, on obtient une commande Click &amp; Collect <strong>sans créneau</strong>.<br>
+          Cause : la validation s'appuie sur <code>actionValidateStepComplete</code>, qui ne se déclenche que si l'étape Livraison est soumise. Le contrôleur de paiement ne vérifie que le client et les adresses (<code>validation.php:42</code>), et le transporteur est affecté d'office puisqu'un seul est disponible.<br>
+          <span class="ok">Décision :</span> documenté dans les limites connues du README plutôt que corrigé. Bloquer demanderait un contrôle <em>avant</em> la création de la commande, donc un hook hors du périmètre ; <code>actionValidateOrder</code> intervient trop tard et ne pourrait que signaler. Ce n'est pas une régression : la limite existe depuis l'origine.<br>
+          <span class="ok">Leçon :</span> c'est un script de test cassé qui l'a révélée — une erreur de manipulation vaut parfois un audit.</li>
+      </ul>
+    </div>
     <div class="cols">
       <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
-      <div><h4>Prochaine étape</h4><ul><li>Étape 4 : <code>data/dump.sql</code> nettoyé puis validé sur une pile isolée — c'est le dernier point qui bloque la reproductibilité.</li><li>Puis pied de page en colonnes, vidéo, bilan, PR finale.</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Pied de page en colonnes façon maquette, dernier reste de l'habillage.</li><li>Puis vidéo de démonstration, bilan personnel, PR finale <code>develop</code> → <code>main</code>.</li></ul></div>
     </div>
     <h4>Avis</h4>
     <div class="avis"><p class="todo-text">À compléter</p></div>
