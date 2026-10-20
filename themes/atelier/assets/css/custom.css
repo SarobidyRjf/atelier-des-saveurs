@@ -1298,10 +1298,6 @@ body#checkout section.checkout-step.-current .step-title {
     float: none !important;
   }
 
-  #header .header-nav .mobile #menu-icon {
-    order: 0;
-  }
-
   #header .header-nav .mobile #_mobile_logo {
     order: 1;
     flex: 1 1 auto;
@@ -1319,10 +1315,6 @@ body#checkout section.checkout-step.-current .step-title {
 
   #header .header-nav .mobile .clearfix {
     display: none;
-  }
-
-  .atelier-logo-text {
-    font-size: 1rem;
   }
 
   #header .header-nav .blockcart {
@@ -1878,11 +1870,12 @@ a[data-target="#post-product-comment-modal"]:hover {
 }
 
 @media (max-width: 767px) {
-  /* En-tête : le nom de la boutique débordait de son emplacement et passait
-     sous l'icône du compte. On le laisse rétrécir, et on coupe proprement
-     plutôt que de déborder. */
+  /* Rangée mobile de l'en-tête du TUNNEL de commande (celui de la boutique
+     n'a plus d'en-tête sur mobile, voir section 29). Marge latérale : la
+     rangée Bootstrap a des marges négatives. */
   #header .header-nav .mobile {
     gap: .4rem;
+    padding: 0 15px;
   }
 
   #header .header-nav .mobile #_mobile_logo {
@@ -1891,27 +1884,30 @@ a[data-target="#post-product-comment-modal"]:hover {
 
   .atelier-logo {
     min-width: 0;
-    gap: .35rem;
   }
 
   .atelier-logo-mark {
     flex: 0 0 auto;
-    width: 28px;
-    height: 28px;
   }
 
-  /* Le nom de la boutique reste sur UNE ligne à toutes les largeurs : sa
-     taille suit celle de l'écran avec clamp(), au lieu d'être tronquée ou
-     renvoyée à la ligne. 3vw vaut ~9,6 px à 320 px et atteint le plafond de
-     0,95 rem dès 500 px. */
-  .atelier-logo-text {
-    font-size: clamp(.72rem, 3vw, .95rem);
+  /* Sur mobile, le logo se réduit à son pictogramme. Le nom est masqué
+     VISUELLEMENT seulement (même technique que .sr-only de Bootstrap) : le
+     SVG étant aria-hidden, c'est lui qui donne son nom au lien pour les
+     lecteurs d'écran. Le logo du pied de page garde son texte. */
+  #header .atelier-logo-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
     white-space: nowrap;
+    border: 0;
   }
 
   #header .header-nav .mobile #_mobile_user_info,
-  #header .header-nav .mobile #_mobile_cart,
-  #header .header-nav .mobile #menu-icon {
+  #header .header-nav .mobile #_mobile_cart {
     flex: 0 0 auto;
   }
 
@@ -2712,5 +2708,149 @@ body#category .filter-button {
 @media (max-width: 767px) {
   .atelier-footer-baseline {
     max-width: none;
+  }
+
+  /* Le pied de page touchait les bords : les rangées Bootstrap (marges
+     négatives de 15 px) annulent la marge du conteneur. On la double, et
+     les titres repliables s'alignent sur le bloc d'identité. */
+  .footer-container .container {
+    padding-right: 30px;
+    padding-left: 30px;
+  }
+
+  .footer-container .title {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   29. Barre de navigation mobile (en bas de l'écran)
+   Sur mobile, l'en-tête ne garde que le logo et la recherche : la barre
+   porte la navigation. Accueil, Boutique et Retrait viennent du gabarit ;
+   le compte et le panier sont ceux des modules, déplacés ici par le JS de
+   Classic.
+   Icônes seules : les libellés sont portés par « title » et « aria-label ».
+   -------------------------------------------------------------------------- */
+.atelier-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .atelier-bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: stretch;
+    background: #ffffff;
+    border-top: 1px solid var(--atelier-grey);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, .06);
+    /* Écrans à encoche : la barre ne passe pas sous la barre système. */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* La barre est fixe : on réserve sa hauteur en bas de page pour que le
+     pied de page ne soit pas caché dessous. */
+  body:has(.atelier-bottom-nav) {
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+
+  /* Les cinq cases se partagent la largeur. */
+  .atelier-bottom-nav > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .atelier-bottom-nav-link,
+  .atelier-bottom-nav .user-info > a.atelier-account,
+  .atelier-bottom-nav .blockcart .header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 3.5rem;
+    color: var(--atelier-text);
+    cursor: pointer;
+  }
+
+  .atelier-bottom-nav .material-icons {
+    font-size: 1.625rem;
+    color: inherit;
+  }
+
+  .atelier-bottom-nav-link.current,
+  .atelier-bottom-nav a:hover {
+    color: var(--atelier-dark);
+  }
+
+  .atelier-bottom-nav-link.current .material-icons {
+    color: var(--atelier-accent-hover);
+  }
+
+  /* Compte : la déconnexion reste dans « Mon compte ». Le libellé
+     (« Connexion » ou le nom du client) est déjà masqué par Classic
+     sur mobile (hidden-sm-down). */
+  .atelier-bottom-nav .user-info .atelier-logout {
+    display: none;
+  }
+
+  /* Panier : quand il n'est pas vide, le module enveloppe son contenu dans
+     un lien, qui doit occuper toute la case. */
+  .atelier-bottom-nav .blockcart,
+  .atelier-bottom-nav .cart-preview.active {
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .atelier-bottom-nav .blockcart .header > a {
+    display: contents;
+    color: inherit;
+  }
+
+  /* Le nombre d'articles devient une pastille sur l'icône. */
+  .atelier-bottom-nav .blockcart .cart-products-count {
+    position: absolute;
+    top: .55rem;
+    left: calc(50% + .45rem);
+    font-size: .625rem;
+    font-weight: 700;
+    color: var(--atelier-dark);
+  }
+
+  .atelier-bottom-nav .blockcart.active .shopping-cart {
+    color: var(--atelier-accent-hover);
+  }
+}
+
+/* En-tête mobile : pictogramme du logo et recherche sur une seule ligne.
+   Tout le reste de la rangée est hidden-sm-down (menu, compte, panier,
+   lien Retrait), la grille de la version ordinateur n'a donc pas lieu
+   d'être ici. */
+@media (max-width: 767px) {
+  .atelier-header-row {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .5rem 0;
+  }
+
+  .atelier-header-row > #_desktop_logo {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 0;
+  }
+
+  .atelier-header-row #search_widget {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    float: none;
   }
 }
