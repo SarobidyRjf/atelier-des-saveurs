@@ -2599,3 +2599,105 @@ body#category .breadcrumb {
   font-size: .8125rem;
   color: var(--atelier-text);
 }
+
+/* --------------------------------------------------------------------------
+   28. Pied de page en colonnes
+   Première colonne : identité de la boutique (ajoutée par notre surcharge de
+   footer.tpl) ; les suivantes viennent des modules. Classic leur impose des
+   largeurs Bootstrap hétérogènes (col-md-6, col-md-3…) ; la grille les ignore
+   et répartit les colonnes à égalité, l'identité recevant un peu plus de place.
+   -------------------------------------------------------------------------- */
+@media (min-width: 768px) {
+  /* La rangée n'a que QUATRE enfants directs : notre colonne d'identité,
+     puis ps_linklist — qui groupe ses DEUX listes dans une seule cellule —,
+     ps_customeraccountlinks et ps_contactinfo. D'où quatre pistes, celle de
+     ps_linklist doublée, et une sous-grille à l'intérieur pour ses deux
+     listes. Réserver cinq pistes laissait une colonne vide et serrait tout. */
+  .footer-container .container > .row:first-child {
+    display: grid;
+    grid-template-columns: 1.5fr 2fr 1fr 1.3fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .footer-container .container > .row:first-child > * {
+    width: auto;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-container .container > .row:first-child > .links > .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 0;
+  }
+
+  .footer-container .container > .row:first-child > .links > .row > * {
+    width: auto;
+    max-width: none;
+    padding: 0;
+  }
+}
+
+.atelier-footer-brand .atelier-logo-wrapper {
+  margin-bottom: .75rem;
+}
+
+.atelier-footer-baseline {
+  margin: 0 0 1rem;
+  max-width: 22rem;
+  font-size: .875rem;
+  line-height: 1.6;
+  color: var(--atelier-text);
+}
+
+.atelier-footer-pickup {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .45rem 1rem;
+  background: var(--atelier-soft);
+  border-radius: 999px;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--atelier-dark);
+}
+
+.atelier-footer-pickup:hover {
+  background: var(--atelier-accent);
+  color: var(--atelier-dark);
+}
+
+.atelier-footer-pickup .material-icons {
+  font-size: 1.125rem;
+}
+
+/* Barre du bas : séparée des colonnes, le crédit sur sa propre ligne. */
+.footer-container .container > .row:last-child {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e9e9e9;
+}
+
+.footer-container .container > .row:last-child p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: .25rem 1rem;
+  margin: 0;
+  font-size: .8125rem;
+}
+
+.atelier-credit {
+  padding: 0;
+  color: var(--atelier-text);
+}
+
+@media (max-width: 767px) {
+  .atelier-footer-baseline {
+    max-width: none;
+  }
+}
