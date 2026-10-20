@@ -28,6 +28,12 @@
   // bouton à l'identique sans écrire de texte en dur dans ce fichier.
   var libelle = '';
 
+  // Identifiants des étapes dont le GABARIT pose un bouton (addresses.tpl,
+  // shipping.tpl). Le script ne recrée un bouton que là : il restaure ce
+  // qu'un rechargement partiel a emporté, il n'en invente pas (ni à l'étape
+  // Paiement, ni sur une étape encore inaccessible).
+  var etapesAvecRetour = [];
+
   function etapePrecedente(etape) {
     var precedente = etape.previousElementSibling;
     while (precedente && !precedente.classList.contains('checkout-step')) {
@@ -48,6 +54,9 @@
       var retour = etape.querySelector('.atelier-step-back');
       if (retour && retour.textContent.trim()) {
         libelle = retour.textContent.trim();
+        if (etapesAvecRetour.indexOf(etape.id) === -1) {
+          etapesAvecRetour.push(etape.id);
+        }
       }
 
       var precedente = etapePrecedente(etape);
@@ -69,20 +78,25 @@
       }
 
       if (!retour) {
-        if (!libelle) {
+        var contenu = etape.querySelector('.content');
+        if (!libelle || !contenu || etapesAvecRetour.indexOf(etape.id) === -1) {
           return;
         }
         retour = document.createElement('button');
         retour.type = 'button';
         retour.className = 'btn btn-secondary atelier-step-back';
         retour.textContent = libelle;
-        // Pas de « Continuer » où l'insérer : on le pose en fin d'étape.
-        etape.appendChild(retour);
+        // Dans .content et non dans la <section> : Classic masque .content
+        // quand l'étape n'est pas la courante, le bouton disparaît avec.
+        contenu.appendChild(retour);
       }
 
-      retour.addEventListener('click', function () {
+      // « onclick = » et non addEventListener : la fonction est rejouée à
+      // chaque rechargement partiel, une affectation remplace l'écouteur au
+      // lieu d'en empiler un de plus.
+      retour.onclick = function () {
         titrePrecedent.click();
-      });
+      };
 
       // Une étape peut n'avoir AUCUN bouton « Continuer » : l'étape Livraison
       // n'en émet pas quand aucun transporteur ne dessert l'adresse du client

@@ -558,7 +558,7 @@
 
   <article class="page day" data-date="2026-10-20">
     <h2 class="tape blue">20/10/2026</h2>
-    <p class="meta">Branche : <code>fix/revue-theme-atelier</code></p>
+    <p class="meta">Branches : <code>fix/revue-theme-atelier</code>, <code>fix/revue-structure-theme</code></p>
     <h4>Fait</h4>
     <ul>
       <li>Revue du thème enfant : 7 constats, tous traités.</li>
@@ -619,6 +619,27 @@
       <li>Pas de réseaux sociaux : <code>ps_socialfollow</code> n'est pas configuré et ne rend rien. Inventer des comptes aurait été malhonnête.</li>
       <li>Vérifié : 7 pages en 200, parcours complet rejoué (commande 43), crédit FoodMart toujours présent, <code>themes/classic</code> inchangé, <code>lint.sh</code> vert, aucune erreur dans les logs, rendu contrôlé en 1280 et 390 px.</li>
     </ul>
+    <h4>Fait — revue de structure du thème et navigation mobile</h4>
+    <ul>
+      <li>Troisième revue du thème, chaque affirmation <strong>revérifiée sur les pages servies</strong> : sur 10 constats, 6 vrais, 3 en partie, 1 faux (une classe CSS dite « sans règle » en avait une), et un défaut plus visible que tous les autres, absent de l'audit. Tout est corrigé : <code class="proof">cfbdfca</code>.</li>
+      <li>Fil d'Ariane de nouveau visible à partir de la page 2 d'une catégorie (<code>:has(.atelier-category-hero)</code>), bouton « Filtrer » mobile retiré, page Contact revenue en <code>layout-left-column</code> avec la colonne des coordonnées, un seul <code>&lt;h1&gt;</code> sur l'accueil.</li>
+      <li><strong>Navigation mobile</strong> : en-tête réduit au pictogramme du logo et à la recherche, menu burger supprimé, barre d'icônes fixée en bas (Accueil, Boutique, Retrait, compte, panier) avec libellés en <code>title</code> et <code>aria-label</code>. Pied de page décollé des bords : <code class="proof">70654b4</code>.</li>
+      <li>Vérifié en rendu Chrome headless à 390 px (visiteur et client connecté, panier rempli) et à 1280 px (desktop inchangé), tunnel rejoué jusqu'à l'étape Livraison, 6 hooks du module intacts après <code>prestashop:theme:enable atelier</code>.</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions — revue de structure</h4>
+      <ul>
+        <li><span class="err">Erreur :</span> trois boutons « Précédent » à l'étape Adresses.<br>
+          Cause : <code>custom.js</code> créait un bouton pour <em>toute</em> étape sans « Continuer », y compris les étapes encore inaccessibles (<code>unreachable.tpl</code>, sans bloc <code>.content</code>), et le posait dans la <code>&lt;section&gt;</code>. Or les sections sont en <code>display: contents</code> : le bouton devenait une case visible de la grille.<br>
+          <span class="ok">Résolution :</span> ne recréer un bouton que dans une étape dont le gabarit en avait posé un, et toujours dans <code>.content</code>, que Classic masque hors de l'étape courante. <code>onclick =</code> au lieu d'<code>addEventListener</code> pour ne plus empiler d'écouteurs.<br>
+          <span class="ok">Leçon :</span> ce défaut n'a été vu qu'en <strong>affichant</strong> le tunnel ; la lecture du code seule l'avait manqué.</li>
+        <li><span class="err">Erreur :</span> sur mobile, le bouton « Filtrer » de la catégorie Accueil vidait la page.<br>
+          Cause : la catégorie est en pleine largeur, donc sans colonne <code>displayLeftColumn</code> ni <code>#search_filters_wrapper</code> ; le script de Classic masquait le contenu et le pied de page pour afficher des filtres absents.<br>
+          <span class="ok">Résolution :</span> bouton masqué sur les pages de catégorie, choix documenté dans <code>theme.yml</code>.</li>
+        <li><span class="err">Piège :</span> le menu des rayons, le compte et le panier n'ont pas été recopiés dans la barre mobile.<br>
+          Raison : le JS de Classic échange déjà le contenu de chaque <code>#_desktop_xxx</code> avec son jumeau <code>#_mobile_xxx</code>. Il a suffi de placer <code>#_mobile_user_info</code> et <code>#_mobile_cart</code> dans la barre ; le panier y reste à jour en AJAX.</li>
+      </ul>
+    </div>
     <div class="cols">
       <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
       <div><h4>Prochaine étape</h4><ul><li>Vidéo de démonstration (5 à 10 min), bilan personnel, PR finale <code>develop</code> → <code>main</code>.</li><li>En attente de Sarobidy : photos de la tapenade et de la fleur de sel, vraies bannières de catégorie.</li></ul></div>

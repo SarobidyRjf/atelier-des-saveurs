@@ -23,7 +23,8 @@
  * reste lisible — fond doux et texte sombre — au lieu d'un trou blanc.
  *
  * Le fil d'Ariane est rendu ICI pour être posé sur l'image. Celui de la page
- * est masqué en CSS sur les pages de catégorie (voir custom.css, section 26) :
+ * est masqué en CSS tant que la bannière est présente, c'est-à-dire en page 1
+ * uniquement (voir custom.css, section 26) :
  * le dupliquer visuellement serait une faute, mais le rendre deux fois dans
  * le HTML en serait une autre, donc un seul des deux est visible.
  *
