@@ -556,6 +556,38 @@
     <div class="avis"><p class="todo-text">À compléter</p></div>
   </article>
 
+  <article class="page day" data-date="2026-10-20">
+    <h2 class="tape blue">20/10/2026</h2>
+    <p class="meta">Branche : <code>fix/revue-theme-atelier</code></p>
+    <h4>Fait</h4>
+    <ul>
+      <li>Revue du thème enfant : 7 constats, tous traités.</li>
+      <li><strong>Reproductibilité (le plus important)</strong> : <code>global_settings</code> est désormais déclaré dans <code>config/theme.yml</code> au lieu d'être hérité de Classic. Vérifié en simulant une restauration du dump : avant activation, <code>displayHome</code> portait 7 modules dont le carrousel et le lorem ipsum de démonstration ; après <code>prestashop:theme:enable atelier</code>, il n'en reste que <code>ps_bestsellers</code> et <code>ps_newproducts</code>, et les 6 hooks du module Click &amp; Collect sont intacts.</li>
+      <li>Bouton « Précédent » du tunnel : le script est rejouable et recrée le bouton après un rechargement partiel.</li>
+      <li>Identifiants dupliqués sur les champs quantité supprimés (un produit peut figurer dans deux listes d'une même page) ; <code>aria-label</code> à la place du <code>&lt;label for&gt;</code>.</li>
+      <li>Trois correctifs mineurs : <code>aria-labelledby</code> du bloc newsletter qui annulait son propre intitulé, total du panier de l'en-tête remplacé par le sous-total des produits, commentaire périmé du <code>.gitignore</code>. Couplage aux identifiants de catégorie documenté dans le gabarit et le README.</li>
+      <li>Vérifié : parcours complet rejoué (commande 39), 5 pages en 200, <code>themes/classic</code> inchangé, aucune erreur dans <code>var/logs</code>, montage Docker cohérent (46 fichiers des deux côtés).</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions</h4>
+      <ul>
+        <li><span class="err">Erreur :</span> activer le thème ramenait les blocs de démonstration sur l'accueil.<br>
+          Cause : omettre <code>global_settings</code> fait hériter de la liste de Classic, et <code>ThemeManager::enable()</code> la <strong>rejoue</strong> à chaque activation (<code>ThemeManager.php:258</code>). Le retrait que j'avais fait en base ne survivait donc pas à une installation suivie depuis le README.<br>
+          <span class="ok">Résolution :</span> déclarer <code>global_settings</code> en entier. Le mécanisme joue alors en notre faveur : tout hook déclaré est <strong>vidé puis reconstruit</strong> (<code>HookConfigurator.php:75</code>, <code>HookRepository::persistHooksConfiguration:147</code>), et un hook absent de la liste n'est pas touché — ce qui préserve les hooks du module.<br>
+          <span class="ok">Leçon :</span> hériter n'est pas neutre quand la valeur héritée est <em>rejouée</em> par le cœur.</li>
+        <li><span class="err">Erreur :</span> le bouton « Précédent » disparaissait quand le client changeait de pays à l'étape Adresses.<br>
+          Cause : vérifié dans le HTML rendu — <code>.continue</code> est à l'intérieur de <code>&lt;div class="js-address-form"&gt;</code>, que <code>themes/core.js</code> remplace entièrement. En y déplaçant mon bouton, je le faisais entrer dans la zone détruite.<br>
+          <span class="ok">Résolution :</span> réinstallation sur <code>updatedAddressForm</code> et <code>updatedDeliveryForm</code>, avec recréation du bouton à partir du libellé relevé dans le gabarit — pour qu'aucun texte ne soit écrit en dur dans le JavaScript.</li>
+      </ul>
+    </div>
+    <div class="cols">
+      <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Étape 4 : <code>data/dump.sql</code> nettoyé puis validé sur une pile isolée — c'est le dernier point qui bloque la reproductibilité.</li><li>Puis pied de page en colonnes, vidéo, bilan, PR finale.</li></ul></div>
+    </div>
+    <h4>Avis</h4>
+    <div class="avis"><p class="todo-text">À compléter</p></div>
+  </article>
+
 </main>
 
 <nav class="pager" aria-label="Pages du journal">

@@ -4,9 +4,12 @@
 # array_merge de PREMIER NIVEAU (src/Core/Addon/Theme/Theme.php:61).
 # Une clé écrite ici REMPLACE donc toute la clé du parent ; une clé absente
 # est héritée telle quelle. D'où les deux règles ci-dessous :
-#  - « global_settings » est volontairement ABSENT : on hérite ainsi des
-#    types d'images et de l'affectation des hooks de Classic (sans quoi
-#    tous les modules du front perdraient leur position).
+#  - « global_settings » est au contraire REDÉFINI EN ENTIER, y compris les
+#    parties identiques à Classic. L'omettre revenait à hériter de la liste
+#    de Classic, que « prestashop:theme:enable » REJOUE à chaque activation
+#    (ThemeManager::enable -> doHookModules, ThemeManager.php:258) : les
+#    blocs de démonstration revenaient donc sur l'accueil à chaque
+#    installation suivie depuis le README.
 #  - « meta » et « theme_settings » sont réécrits EN ENTIER, y compris les
 #    parties inchangées, car la fusion ne descend pas dans les sous-clés.
 
@@ -17,7 +20,7 @@ parent: classic
 
 author:
   name: "Sarobidy"
-  email: "contact@atelier-des-saveurs.test"
+  email: "sarobidy.rajaofetra@nuklear.io"
   url: "http://localhost:8080"
 
 assets:
@@ -46,6 +49,125 @@ meta:
     layout-right-column:
       name: Deux colonnes, petite colonne à droite
       description: Deux colonnes avec une petite colonne à droite.
+
+# Affectation des modules aux hooks, rejouée à chaque activation du thème.
+#
+# Attention au mécanisme : tout hook listé ici est d'abord VIDÉ puis
+# reconstruit à partir de cette liste (HookConfigurator.php:75 et
+# HookRepository::persistHooksConfiguration:147), et tout module cité ici est
+# retiré de TOUS ses hooks actuels avant d'être replacé (HookConfigurator.php:62-68).
+# Un hook absent de cette liste, lui, n'est pas touché : c'est ce qui préserve
+# les hooks du module nk_clickcollect.
+#
+# D'où la recopie fidèle de la liste de Classic, avec un seul écart :
+# displayHome ne contient plus que les meilleures ventes et les nouveautés.
+# ps_imageslider, ps_banner et ps_customtext en disparaissent donc (contenu
+# de démonstration PrestaShop) sans être désinstallés pour autant.
+global_settings:
+  configuration:
+    PS_IMAGE_QUALITY: png
+
+  modules:
+    to_enable:
+      - ps_linklist
+
+  hooks:
+    modules_to_hook:
+      displayAfterBodyOpeningTag:
+        - blockreassurance
+      displayNavFullWidth:
+        - blockreassurance
+      displayAdminCustomers:
+        - blockwishlist
+      displayCustomerAccount:
+        - blockwishlist
+        - psgdpr
+      displayMyAccountBlock:
+        - blockwishlist
+      displayNav1:
+        - ps_contactinfo
+      displayNav2:
+        - ps_languageselector
+        - ps_currencyselector
+        - ps_customersignin
+        - ps_shoppingcart
+      displayTop:
+        - ps_mainmenu
+        - ps_searchbar
+      # Seul écart avec Classic : ni carrousel, ni bannière, ni bloc de texte
+      # de démonstration. L'ordre fixe la position d'affichage.
+      displayHome:
+        - ps_bestsellers
+        - ps_newproducts
+      displayFooterBefore:
+        - ps_emailsubscription
+        - ps_socialfollow
+        - blockreassurance
+      displayFooter:
+        - ps_linklist
+        - ps_customeraccountlinks
+        - ps_contactinfo
+        - blockwishlist
+      displayFooterAfter:
+        - blockreassurance
+      displayFooterProduct:
+        - productcomments
+      displayLeftColumn:
+        - ps_categorytree
+        - ps_facetedsearch
+      displayContactLeftColumn:
+        - ps_contactinfo
+      displayContactRightColumn:
+        - ps_contactinfo
+      displayContactContent:
+        - contactform
+      displaySearch:
+        - ps_searchbar
+      displayProductAdditionalInfo:
+        - ps_sharebuttons
+        - productcomments
+      displayProductListReviews:
+        - productcomments
+      displayReassurance:
+        - blockreassurance
+      displayOrderConfirmation2:
+        - ps_featuredproducts
+      displayProductActions:
+        - blockwishlist
+
+  # Recopiés de Classic : ThemeValidator exige global_settings.image_types
+  # (src/Core/Addon/Theme/ThemeValidator.php:90-95).
+  image_types:
+    cart_default:
+      width: 125
+      height: 125
+      scope: [ products ]
+    small_default:
+      width: 98
+      height: 98
+      scope: [ products, categories, manufacturers, suppliers ]
+    medium_default:
+      width: 452
+      height: 452
+      scope: [ products, manufacturers, suppliers ]
+    home_default:
+      width: 250
+      height: 250
+      scope: [ products ]
+    large_default:
+      width: 800
+      height: 800
+      scope: [ products, manufacturers, suppliers ]
+    category_default:
+      width: 141
+      height: 180
+      scope: [ categories ]
+    stores_default:
+      width: 170
+      height: 115
+      scope: [ stores ]
+
+  new_password_policy_feature: true
 
 theme_settings:
   default_layout: layout-full-width

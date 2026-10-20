@@ -67,10 +67,16 @@
   </section>
 
   {* Les rayons de la boutique, en cartes à icône comme la maquette.
-     Les deux catégories (10 et 11) sont les seules de la boutique et font
-     partie de sa structure : elles sont nommées ici, comme dans le bandeau.
      Les icônes viennent de Material Icons, déjà embarqué par Classic : rien
-     à télécharger. *}
+     à télécharger.
+
+     COUPLAGE ASSUMÉ : les identifiants de catégorie 10 (épicerie sucrée) et
+     11 (épicerie salée) sont écrits en dur, ici comme dans le bandeau. Ils
+     font partie de la structure de la boutique et sont livrés avec
+     data/dump.sql. Un catalogue recréé autrement donnerait des liens en 404 :
+     ces deux identifiants sont donc à vérifier si le catalogue change.
+     (La catégorie 2 est, elle, la catégorie Accueil de PrestaShop, dont
+     l'identifiant est standard.) *}
   <section class="atelier-rayons">
     <h2 class="atelier-rayons-title">{l s='Nos rayons' d='Shop.Theme.Global'}</h2>
     <div class="atelier-rayons-grid">
