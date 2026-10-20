@@ -12,8 +12,10 @@
  * du module remplace ce bloc après chaque ajout au panier en s'appuyant
  * dessus (modules/ps_shoppingcart/ps_shoppingcart.js).
  *
- * $cart.totals.total.value : même variable que Classic utilise dans
- * templates/checkout/_partials/cart-summary-totals.tpl:31.
+ * On affiche le SOUS-TOTAL des produits et non $cart.totals.total.value :
+ * ce dernier passe par getOrderTotal(true, Cart::BOTH) et inclut donc les
+ * frais de port, ce qui n'a pas de sens dans un en-tête où le client n'a pas
+ * encore choisi son mode de livraison.
  *}
 <div id="_desktop_cart">
   <div class="blockcart cart-preview {if $cart.products_count > 0}active{else}inactive{/if}" data-refresh-url="{$refresh_url}">
@@ -24,7 +26,7 @@
         <i class="material-icons shopping-cart" aria-hidden="true">shopping_cart</i>
         <span class="cart-text hidden-sm-down">
           <span class="cart-label">{l s='Votre panier' d='Shop.Theme.Checkout'}</span>
-          <span class="cart-total-value">{$cart.totals.total.value}</span>
+          <span class="cart-total-value">{$cart.subtotals.products.value}</span>
         </span>
         <span class="cart-products-count">({$cart.products_count})</span>
       {if $cart.products_count > 0}

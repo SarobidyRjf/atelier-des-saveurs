@@ -68,12 +68,14 @@
         <input type="hidden" name="id_product" value="{$product.id_product|intval}">
         <input type="hidden" name="id_product_attribute" value="{$product.id_product_attribute|intval}">
         <input type="hidden" name="add" value="1">
-        <label class="sr-only" for="atelier-qty-{$product.id_product|intval}">
-          {l s='Quantité' d='Shop.Theme.Actions'}
-        </label>
+        {* Pas de <label for> ici : un même produit peut figurer dans
+           plusieurs listes de la même page (meilleures ventes ET nouveautés),
+           et l'identifiant serait alors dupliqué — le libellé de la seconde
+           carte pointerait vers le champ de la première. « aria-label » donne
+           le même intitulé aux lecteurs d'écran sans identifiant. *}
         <input class="atelier-card-qty"
-               id="atelier-qty-{$product.id_product|intval}"
-               type="number" name="qty" value="1" min="1" inputmode="numeric">
+               type="number" name="qty" value="1" min="1" inputmode="numeric"
+               aria-label="{l s='Quantité' d='Shop.Theme.Actions'}">
         {* Libellé court à l'écran pour tenir sur une ligne dans une carte
            étroite ; l'intitulé complet reste donné aux lecteurs d'écran. *}
         <button class="btn btn-secondary atelier-card-btn" type="submit"

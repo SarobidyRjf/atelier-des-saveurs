@@ -11,7 +11,10 @@
  *
  * Ce qui change : la mise en page, un intitulé visible au-dessus du champ
  * (la maquette en a un, et c'est mieux pour l'accessibilité qu'un simple
- * texte d'invite), et la classe col-xs-12 au lieu de col-lg-8 pour occuper
+ * texte d'invite ; le gabarit d'origine désignait au contraire le
+ * paragraphe marketing comme libellé du champ, ce qui le faisait annoncer
+ * à la place de « Votre adresse e-mail »), et la classe col-xs-12 au lieu
+ * de col-lg-8 pour occuper
  * toute la largeur. Attention : Classic est en Bootstrap 4 ALPHA, où la
  * classe sans point de rupture s'écrit « col-xs-12 » ; « col-12 » n'existe
  * pas et l'élément ne serait pas une colonne.
@@ -29,7 +32,7 @@
         {l s='Les nouveautés' d='Shop.Theme.Global'}
         <span>{l s='avant tout le monde' d='Shop.Theme.Global'}</span>
       </h2>
-      <p class="atelier-newsletter-lead" id="block-newsletter-label">
+      <p class="atelier-newsletter-lead">
         {l s='Nos arrivages, nos recettes de saison et nos créneaux de retrait, une fois par mois. Désinscription en un clic.' d='Shop.Theme.Global'}
       </p>
     </div>
@@ -46,7 +49,6 @@
         type="email"
         value="{$value}"
         placeholder="{l s='prenom.nom@exemple.fr' d='Shop.Forms.Labels'}"
-        aria-labelledby="block-newsletter-label"
         required
       >
 

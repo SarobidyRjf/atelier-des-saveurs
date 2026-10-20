@@ -14,34 +14,92 @@
  * de l'étape précédente, exactement ce que fait un visiteur qui clique
  * dessus. C'est le mécanisme de Classic (themes/classic/assets/js/theme.js,
  * qui écoute les « .js-step-title »).
+ *
+ * POURQUOI LA POSE EST REJOUÉE : à l'étape « Adresses », « Continuer » se
+ * trouve à l'intérieur de <div class="js-address-form">, que themes/core.js
+ * remplace intégralement quand le client change de pays. Notre barre et le
+ * bouton qu'on y avait déplacé disparaissent avec. On réinstalle donc après
+ * chaque rechargement, en recréant le bouton s'il a été emporté.
  */
-document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.checkout-step .atelier-step-back').forEach(function (retour) {
-    var etape = retour.closest('.checkout-step');
-    var precedente = etape ? etape.previousElementSibling : null;
+(function () {
+  'use strict';
 
-    // Pas d'étape avant celle-ci : le bouton n'a pas de sens, on le retire.
-    if (!precedente || !precedente.classList.contains('checkout-step')) {
-      retour.remove();
-      return;
+  // Libellé repris du gabarit au premier passage, pour pouvoir recréer le
+  // bouton à l'identique sans écrire de texte en dur dans ce fichier.
+  var libelle = '';
+
+  function etapePrecedente(etape) {
+    var precedente = etape.previousElementSibling;
+    while (precedente && !precedente.classList.contains('checkout-step')) {
+      precedente = precedente.previousElementSibling;
     }
+    return precedente;
+  }
 
-    var titrePrecedent = precedente.querySelector('.js-step-title');
-    var continuer = etape.querySelector('.continue');
-    if (!titrePrecedent || !continuer) {
-      retour.remove();
-      return;
-    }
-
-    // On encadre les deux boutons pour les afficher côte à côte.
-    var barre = document.createElement('div');
-    barre.className = 'atelier-step-actions';
-    continuer.parentNode.insertBefore(barre, continuer);
-    barre.appendChild(retour);
-    barre.appendChild(continuer);
-
-    retour.addEventListener('click', function () {
-      titrePrecedent.click();
+  function installerBoutonsRetour() {
+    // Barres laissées vides par un rechargement partiel.
+    document.querySelectorAll('.atelier-step-actions').forEach(function (barre) {
+      if (!barre.querySelector('.continue')) {
+        barre.remove();
+      }
     });
+
+    document.querySelectorAll('.checkout-step').forEach(function (etape) {
+      var continuer = etape.querySelector('.continue');
+      if (!continuer) {
+        return;
+      }
+
+      var retour = etape.querySelector('.atelier-step-back');
+      if (retour && retour.textContent.trim()) {
+        libelle = retour.textContent.trim();
+      }
+
+      var precedente = etapePrecedente(etape);
+      var titrePrecedent = precedente ? precedente.querySelector('.js-step-title') : null;
+
+      // Première étape : un bouton « Précédent » n'aurait pas de sens.
+      if (!titrePrecedent) {
+        if (retour) {
+          retour.remove();
+        }
+        return;
+      }
+
+      // Déjà en place : on ne réinstalle pas (et on n'empile pas d'écouteur).
+      if (continuer.parentNode.classList.contains('atelier-step-actions')) {
+        return;
+      }
+
+      if (!retour) {
+        if (!libelle) {
+          return;
+        }
+        retour = document.createElement('button');
+        retour.type = 'button';
+        retour.className = 'btn btn-secondary atelier-step-back';
+        retour.textContent = libelle;
+      }
+
+      retour.addEventListener('click', function () {
+        titrePrecedent.click();
+      });
+
+      var barre = document.createElement('div');
+      barre.className = 'atelier-step-actions';
+      continuer.parentNode.insertBefore(barre, continuer);
+      barre.appendChild(retour);
+      barre.appendChild(continuer);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    installerBoutonsRetour();
+
+    // Évènements émis par le cœur après un rechargement partiel du tunnel.
+    if (window.prestashop && typeof window.prestashop.on === 'function') {
+      window.prestashop.on('updatedAddressForm', installerBoutonsRetour);
+      window.prestashop.on('updatedDeliveryForm', installerBoutonsRetour);
+    }
   });
-});
+})();
