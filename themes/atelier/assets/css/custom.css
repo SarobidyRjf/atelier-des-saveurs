@@ -2362,8 +2362,8 @@ body#checkout section.checkout-step .address-item.selected {
 
 /* --------------------------------------------------------------------------
    26. Bannière des pages de catégorie
-   Image de fond (couverture de la catégorie, gérée au back-office) et titre
-   posé dessus. Sans image, fond doux de la charte et texte sombre.
+   Pleine largeur, image de fond (couverture de la catégorie), fil d'Ariane
+   et titre posés dessus. Sans image : fond doux de la charte, texte sombre.
    -------------------------------------------------------------------------- */
 
 /* Plus de carte englobante : la bannière EST la carte. */
@@ -2374,44 +2374,89 @@ body#checkout section.checkout-step .address-item.selected {
   box-shadow: none;
 }
 
+/* Le fil d'Ariane de la page est repris DANS la bannière : on masque
+   l'original pour ne pas l'afficher deux fois. Il reste dans le HTML, donc
+   accessible aux moteurs et aux lecteurs d'écran via celui de la bannière. */
+body#category .breadcrumb {
+  display: none;
+}
+
+/* Sortie du conteneur : la bannière occupe toute la largeur de la fenêtre.
+   « margin-left: calc(50% - 50vw) » la recentre sur la fenêtre quel que soit
+   le conteneur parent ; #wrapper empêche le débordement horizontal que
+   100vw provoquerait en présence d'une barre de défilement. */
+#wrapper {
+  overflow-x: hidden;
+}
+
 .atelier-category-hero {
   position: relative;
   display: flex;
   align-items: flex-end;
-  min-height: 180px;
-  margin: 0 0 1.25rem;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-bottom: 1.5rem;
+  min-height: 170px;
   padding: 0;
   overflow: hidden;
   background: var(--atelier-soft);
   background-size: cover;
   background-position: center;
-  border-radius: var(--atelier-radius-card);
+  border-radius: 0;
+}
+
+.atelier-category-hero.has-image {
+  min-height: 300px;
 }
 
 /* Avec une image, un voile dégradé garantit la lisibilité du titre quelle
    que soit la photo — c'est ce qui permet d'écrire en blanc sans risque. */
-.atelier-category-hero.has-image {
-  min-height: 260px;
-}
-
 .atelier-category-hero.has-image::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(34, 34, 34, .78) 0%, rgba(34, 34, 34, .25) 60%, rgba(34, 34, 34, .1) 100%);
+  background: linear-gradient(to top, rgba(34, 34, 34, .82) 0%, rgba(34, 34, 34, .35) 55%, rgba(34, 34, 34, .12) 100%);
 }
 
+/* Le contenu reste aligné sur la grille du reste de la page. */
 .atelier-category-hero-inner {
   position: relative;
   z-index: 1;
   width: 100%;
-  padding: 2rem;
+  max-width: 1170px;
+  margin: 0 auto;
+  padding: 2rem 15px;
+}
+
+.atelier-category-breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  margin: 0 0 .5rem;
+  padding: 0;
+  list-style: none;
+  font-size: .875rem;
+}
+
+.atelier-category-breadcrumb li + li::before {
+  content: "/";
+  margin-right: .35rem;
+  opacity: .6;
+}
+
+.atelier-category-breadcrumb a,
+.atelier-category-breadcrumb span {
+  color: var(--atelier-text);
+}
+
+.atelier-category-breadcrumb a:hover {
+  color: var(--atelier-accent-hover);
 }
 
 .atelier-category-title {
   margin: 0;
-  font-size: 2.25rem;
-  line-height: 1.15;
+  font-size: 2.5rem;
+  line-height: 1.1;
   color: var(--atelier-dark);
 }
 
@@ -2427,8 +2472,14 @@ body#checkout section.checkout-step .address-item.selected {
 
 .atelier-category-hero.has-image .atelier-category-title,
 .atelier-category-hero.has-image .atelier-category-desc,
-.atelier-category-hero.has-image .atelier-category-desc p {
+.atelier-category-hero.has-image .atelier-category-desc p,
+.atelier-category-hero.has-image .atelier-category-breadcrumb a,
+.atelier-category-hero.has-image .atelier-category-breadcrumb span {
   color: #ffffff;
+}
+
+.atelier-category-hero.has-image .atelier-category-breadcrumb a:hover {
+  color: var(--atelier-accent);
 }
 
 /* Classic réservait 220 px pour une couverture affichée à côté du texte. */
@@ -2437,13 +2488,16 @@ body#checkout section.checkout-step .address-item.selected {
 }
 
 @media (max-width: 767px) {
-  .atelier-category-hero,
+  .atelier-category-hero {
+    min-height: 130px;
+  }
+
   .atelier-category-hero.has-image {
-    min-height: 150px;
+    min-height: 200px;
   }
 
   .atelier-category-hero-inner {
-    padding: 1.25rem;
+    padding: 1.25rem 15px;
   }
 
   .atelier-category-title {
