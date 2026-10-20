@@ -45,11 +45,6 @@
     });
 
     document.querySelectorAll('.checkout-step').forEach(function (etape) {
-      var continuer = etape.querySelector('.continue');
-      if (!continuer) {
-        return;
-      }
-
       var retour = etape.querySelector('.atelier-step-back');
       if (retour && retour.textContent.trim()) {
         libelle = retour.textContent.trim();
@@ -66,8 +61,10 @@
         return;
       }
 
+      var continuer = etape.querySelector('.continue');
+
       // Déjà en place : on ne réinstalle pas (et on n'empile pas d'écouteur).
-      if (continuer.parentNode.classList.contains('atelier-step-actions')) {
+      if (continuer && continuer.parentNode.classList.contains('atelier-step-actions')) {
         return;
       }
 
@@ -79,11 +76,23 @@
         retour.type = 'button';
         retour.className = 'btn btn-secondary atelier-step-back';
         retour.textContent = libelle;
+        // Pas de « Continuer » où l'insérer : on le pose en fin d'étape.
+        etape.appendChild(retour);
       }
 
       retour.addEventListener('click', function () {
         titrePrecedent.click();
       });
+
+      // Une étape peut n'avoir AUCUN bouton « Continuer » : l'étape Livraison
+      // n'en émet pas quand aucun transporteur ne dessert l'adresse du client
+      // (themes/classic/.../steps/shipping.tpl:110, branche {if $delivery_options}).
+      // Le bouton « Précédent » reste alors seul, mais fonctionnel — c'est
+      // précisément le moment où le client en a besoin.
+      if (!continuer) {
+        retour.classList.add('atelier-step-back-seul');
+        return;
+      }
 
       var barre = document.createElement('div');
       barre.className = 'atelier-step-actions';
