@@ -610,9 +610,18 @@
           <span class="ok">Leçon :</span> c'est un script de test cassé qui l'a révélée — une erreur de manipulation vaut parfois un audit.</li>
       </ul>
     </div>
+    <h4>Fait — pied de page</h4>
+    <ul>
+      <li>Colonne d'identité ajoutée en tête du pied de page (logo, phrase de présentation, lien « Retrait en boutique gratuit »), comme la première colonne de la maquette. Le logo réutilise le gabarit écrit une seule fois pour les deux en-têtes.</li>
+      <li>Disposition en grille : la rangée n'a que <strong>quatre enfants directs</strong> — notre colonne, <code>ps_linklist</code> qui groupe ses DEUX listes dans une seule cellule, <code>ps_customeraccountlinks</code> et <code>ps_contactinfo</code>. Ma première grille en réservait cinq, d'où une colonne vide et deux listes à l'étroit. Corrigé : quatre pistes dont celle de <code>ps_linklist</code> doublée, avec une sous-grille à l'intérieur.</li>
+      <li>Barre du bas séparée par un filet, copyright et crédit FoodMart sur une ligne.</li>
+      <li>Page CMS « A propos » corrigée en « À propos » (accent manquant depuis l'installation).</li>
+      <li>Pas de réseaux sociaux : <code>ps_socialfollow</code> n'est pas configuré et ne rend rien. Inventer des comptes aurait été malhonnête.</li>
+      <li>Vérifié : 7 pages en 200, parcours complet rejoué (commande 43), crédit FoodMart toujours présent, <code>themes/classic</code> inchangé, <code>lint.sh</code> vert, aucune erreur dans les logs, rendu contrôlé en 1280 et 390 px.</li>
+    </ul>
     <div class="cols">
       <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
-      <div><h4>Prochaine étape</h4><ul><li>Pied de page en colonnes façon maquette, dernier reste de l'habillage.</li><li>Puis vidéo de démonstration, bilan personnel, PR finale <code>develop</code> → <code>main</code>.</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Vidéo de démonstration (5 à 10 min), bilan personnel, PR finale <code>develop</code> → <code>main</code>.</li><li>En attente de Sarobidy : photos de la tapenade et de la fleur de sel, vraies bannières de catégorie.</li></ul></div>
     </div>
     <h4>Avis</h4>
     <div class="avis"><p class="todo-text">À compléter</p></div>
