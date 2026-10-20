@@ -2375,18 +2375,31 @@ body#checkout section.checkout-step .address-item.selected {
 }
 
 /* Le fil d'Ariane de la page est repris DANS la bannière : on masque
-   l'original pour ne pas l'afficher deux fois. Il reste dans le HTML, donc
-   accessible aux moteurs et aux lecteurs d'écran via celui de la bannière. */
-body#category .breadcrumb {
+   l'original pour ne pas l'afficher deux fois. « :has() » limite le masquage
+   aux pages où la bannière existe : à partir de la page 2 d'une catégorie,
+   le gabarit ne la rend pas (comme Classic), et le fil d'origine doit alors
+   rester visible. */
+body#category:has(.atelier-category-hero) .breadcrumb {
   display: none;
 }
 
 /* Sortie du conteneur : la bannière occupe toute la largeur de la fenêtre.
    « margin-left: calc(50% - 50vw) » la recentre sur la fenêtre quel que soit
    le conteneur parent ; #wrapper empêche le débordement horizontal que
-   100vw provoquerait en présence d'une barre de défilement. */
-#wrapper {
-  overflow-x: hidden;
+   100vw provoquerait en présence d'une barre de défilement.
+   « clip » plutôt que « hidden » : hidden ferait de #wrapper un conteneur de
+   défilement (overflow-y passerait à auto), ce qui casse position: sticky.
+   Limité aux catégories, seules pages qui ont la bannière. */
+body#category #wrapper {
+  overflow-x: clip;
+}
+
+/* Les catégories sont en pleine largeur (config/theme.yml), donc sans la
+   colonne des filtres (ps_facetedsearch). Le bouton « Filtrer » mobile de
+   Classic (catalog/_partials/products-top.tpl:38) n'aurait plus rien à
+   ouvrir : son script masquerait la page entière. On le retire. */
+body#category .filter-button {
+  display: none;
 }
 
 .atelier-category-hero {

@@ -21,7 +21,7 @@
 
 {block name='hook_footer' prepend}
   <div class="atelier-footer-brand">
-    {include file='_partials/atelier-logo.tpl'}
+    {include file='_partials/atelier-logo.tpl' dans_pied=true}
     <p class="atelier-footer-baseline">
       {l s='Confitures, miels, huiles et condiments préparés en petites quantités, à retirer gratuitement en boutique au créneau de votre choix.' d='Shop.Theme.Global'}
     </p>

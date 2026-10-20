@@ -61,8 +61,9 @@ meta:
 #
 # D'où la recopie fidèle de la liste de Classic, avec un seul écart :
 # displayHome ne contient plus que les meilleures ventes et les nouveautés.
-# ps_imageslider, ps_banner et ps_customtext en disparaissent donc (contenu
-# de démonstration PrestaShop) sans être désinstallés pour autant.
+# ps_imageslider, ps_featuredproducts (« Produits populaires »), ps_banner,
+# ps_customtext et ps_specials (« Promotions ») en disparaissent donc, sans
+# être désinstallés pour autant.
 global_settings:
   configuration:
     PS_IMAGE_QUALITY: png
@@ -95,7 +96,9 @@ global_settings:
         - ps_mainmenu
         - ps_searchbar
       # Seul écart avec Classic : ni carrousel, ni bannière, ni bloc de texte
-      # de démonstration. L'ordre fixe la position d'affichage.
+      # de démonstration, ni « Produits populaires », ni « Promotions ».
+      # L'ordre fixe la position d'affichage (meilleures ventes d'abord,
+      # inverse de Classic).
       displayHome:
         - ps_bestsellers
         - ps_newproducts
@@ -172,12 +175,19 @@ global_settings:
 theme_settings:
   default_layout: layout-full-width
 
-  # Classic met ces pages en layout-left-column, ce qui y affiche l'arbre
-  # de catégories et les blocs Marques/Fournisseurs. Le design visé est
-  # pleine largeur : on les repasse donc toutes en layout-full-width.
+  # Classic met ces pages en layout-left-column, ce qui y affiche la colonne
+  # displayLeftColumn : arbre de catégories et filtres (ps_facetedsearch).
+  # Le design visé est pleine largeur : on les repasse en layout-full-width.
+  # Le bouton « Filtrer » mobile, devenu sans objet, est masqué dans
+  # custom.css (section 26).
+  #
+  # Contact garde le layout-left-column de Classic : sa colonne n'est PAS
+  # displayLeftColumn mais displayContactLeftColumn (contact.tpl:29-41),
+  # qui porte les coordonnées de la boutique (ps_contactinfo) — utiles au
+  # client qui vient retirer sa commande.
   layouts:
     category: layout-full-width
     best-sales: layout-full-width
     new-products: layout-full-width
     prices-drop: layout-full-width
-    contact: layout-full-width
+    contact: layout-left-column

@@ -74,7 +74,8 @@
            carte pointerait vers le champ de la première. « aria-label » donne
            le même intitulé aux lecteurs d'écran sans identifiant. *}
         <input class="atelier-card-qty"
-               type="number" name="qty" value="1" min="1" inputmode="numeric"
+               type="number" name="qty"
+               value="{$product.minimal_quantity|intval}" min="{$product.minimal_quantity|intval}" inputmode="numeric"
                aria-label="{l s='Quantité' d='Shop.Theme.Actions'}">
         {* Libellé court à l'écran pour tenir sur une ligne dans une carte
            étroite ; l'intitulé complet reste donné aux lecteurs d'écran. *}
