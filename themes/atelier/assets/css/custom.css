@@ -453,13 +453,20 @@ textarea.form-control {
   gap: .75rem;
 }
 
-/* La barre de contact de Classic ne sert plus qu'au mobile. */
+/* La barre de contact de Classic ne sert plus qu'au mobile sur les pages de
+   la boutique, puisque son contenu est remonté au niveau 1 de l'en-tête.
+   LE TUNNEL EST EXCLU : il a son propre en-tête, où c'est justement
+   « header_nav » qui porte le logo
+   (themes/classic/templates/checkout/_partials/header.tpl:25-48), son
+   « header_top » étant déjà masqué au-dessus de 768 px par « hidden-md-up ».
+   Sans le body:not(#checkout), la page /commande n'aurait plus d'en-tête
+   du tout sur desktop. */
 .header-nav {
   border-bottom: 0;
 }
 
 @media (min-width: 768px) {
-  .header-nav {
+  body:not(#checkout) .header-nav {
     display: none;
   }
 }
@@ -548,17 +555,6 @@ textarea.form-control {
 .atelier-header-aside .cart-preview.active a,
 .atelier-header-aside .cart-preview.active i {
   color: var(--atelier-dark);
-}
-
-/* La barre de contact de Classic ne sert plus qu'au mobile. */
-.header-nav {
-  border-bottom: 0;
-}
-
-@media (min-width: 768px) {
-  .header-nav {
-    display: none;
-  }
 }
 
 /* --------------------------------------------------------------------------
@@ -739,8 +735,10 @@ textarea.form-control {
   color: var(--atelier-text);
 }
 
-/* Ligne d'information sous le titre : format par défaut, disponibilité et
-   emplacement des avis (vide tant qu'aucun avis n'a été déposé). */
+/* Ligne d'information sous le titre : format par défaut d'un produit à
+   déclinaisons, et emplacement des avis (vide tant qu'aucun n'a été déposé).
+   La disponibilité n'y figure pas : elle n'est pas renseignée dans les listes
+   de produits, seulement sur la fiche. */
 .atelier-card-meta {
   display: flex;
   flex-wrap: wrap;
@@ -819,19 +817,7 @@ textarea.form-control {
   font-size: 1.0625rem;
 }
 
-/* Libellé réservé aux lecteurs d'écran (Bootstrap 4 le nomme .sr-only, on le
-   redéclare pour ne pas dépendre de la présence de l'utilitaire). */
-.atelier-card-actions .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
+
 
 /* Pastilles « Nouveau », « Promo », « Rupture de stock ». */
 .product-flags li.product-flag {
@@ -1452,6 +1438,21 @@ body#checkout section.checkout-step.-current .step-title {
     color: var(--atelier-text);
   }
 
+  /* Classic décale le haut du titre pour la PREMIÈRE étape terminée et pour
+     celle qui suit l'étape courante, et ajoute un filet gris à la seconde :
+       « …-complete:first-of-type .step-title{padding-top:.625rem} »
+       « …-current + .checkout-step .step-title{padding-top:1.25rem;
+          border-top:1px solid #ddd} »
+     Pensé pour un accordéon vertical, cela désaligne les pastilles 1 et 4 de
+     notre barre horizontale et dessine un trait parasite. Les deux règles
+     sont donc annulées au MÊME niveau de spécificité (1 id, 4 classes,
+     2 éléments), sinon elles l'emportent. */
+  body#checkout section.checkout-step.-complete:first-of-type .step-title,
+  body#checkout section.checkout-step.-current + .checkout-step .step-title {
+    padding-top: 0;
+    border-top: 0;
+  }
+
   /* Trait de liaison entre deux pastilles. */
   body#checkout section.checkout-step .step-title::before {
     content: "";
@@ -2035,7 +2036,14 @@ a[data-target="#post-product-comment-modal"]:hover {
   order: 1;
 }
 
-#content.page-home > section:nth-of-type(3) {
+/* Les deux blocs sont désignés par leur RANG et non par leur position :
+   ps_bestsellers ne rend aucun balisage tant qu'aucune vente n'est
+   comptabilisée (ps_bestsellers.php:199-206). Sur une installation neuve,
+   l'accueil n'a donc que trois sections, et un :nth-of-type(3) désignerait
+   les nouveautés — qui passeraient avant « Nos rayons ».
+   « :last-of-type » vise toujours les nouveautés, qui ferment la liste ;
+   « .featured-products » attrape les meilleures ventes quand elles existent. */
+#content.page-home > .featured-products {
   order: 2;
 }
 
@@ -2043,7 +2051,7 @@ a[data-target="#post-product-comment-modal"]:hover {
   order: 3;
 }
 
-#content.page-home > section:nth-of-type(4) {
+#content.page-home > section.featured-products:last-of-type {
   order: 4;
 }
 
@@ -2311,4 +2319,229 @@ button[data-action="show-password"] {
   .atelier-rayon:hover .atelier-rayon-icon {
     transform: none;
   }
+}
+
+
+/* --------------------------------------------------------------------------
+   25. Derniers restes de Classic
+   -------------------------------------------------------------------------- */
+
+/* Trois sélecteurs gardaient le cyan #24b9d7 de Classic, dont un en plein
+   parcours Click & Collect (l'adresse choisie à l'étape 2). */
+body#checkout section.checkout-step .address-item.selected {
+  border-color: var(--atelier-accent);
+}
+
+.tabs .nav-tabs .nav-link.active {
+  color: var(--atelier-dark);
+  border-bottom-color: var(--atelier-accent);
+}
+
+.product-images > li.thumb-container .thumb.selected,
+.product-images > li.thumb-container .thumb:hover {
+  border-color: var(--atelier-accent);
+}
+
+/* La règle « .h1, .h2, .h3 » de la section 3 ne couvre pas les titres que
+   Classic met en majuscules via des sélecteurs d'ÉLÉMENT, sans classe. */
+.contact-form h3,
+.page-order-detail h3,
+.sitemap h2 {
+  text-transform: none;
+}
+
+/* Sélecteur devenu mort : la miniature produit utilise désormais aria-label
+   au lieu d'un libellé masqué. (Bloc .atelier-card-actions .sr-only retiré.) */
+
+/* Bouton « Précédent » seul, quand l'étape n'a pas de « Continuer »
+   (aucun transporteur disponible pour l'adresse du client). */
+.atelier-step-back-seul {
+  display: inline-flex;
+  margin-top: 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   26. Bannière des pages de catégorie
+   Image de fond (couverture de la catégorie, gérée au back-office) et titre
+   posé dessus. Sans image, fond doux de la charte et texte sombre.
+   -------------------------------------------------------------------------- */
+
+/* Plus de carte englobante : la bannière EST la carte. */
+#js-product-list-header {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.atelier-category-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 180px;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  overflow: hidden;
+  background: var(--atelier-soft);
+  background-size: cover;
+  background-position: center;
+  border-radius: var(--atelier-radius-card);
+}
+
+/* Avec une image, un voile dégradé garantit la lisibilité du titre quelle
+   que soit la photo — c'est ce qui permet d'écrire en blanc sans risque. */
+.atelier-category-hero.has-image {
+  min-height: 260px;
+}
+
+.atelier-category-hero.has-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(34, 34, 34, .78) 0%, rgba(34, 34, 34, .25) 60%, rgba(34, 34, 34, .1) 100%);
+}
+
+.atelier-category-hero-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 2rem;
+}
+
+.atelier-category-title {
+  margin: 0;
+  font-size: 2.25rem;
+  line-height: 1.15;
+  color: var(--atelier-dark);
+}
+
+.atelier-category-desc {
+  margin: .5rem 0 0;
+  max-width: 48rem;
+  color: var(--atelier-text);
+}
+
+.atelier-category-desc p:last-child {
+  margin-bottom: 0;
+}
+
+.atelier-category-hero.has-image .atelier-category-title,
+.atelier-category-hero.has-image .atelier-category-desc,
+.atelier-category-hero.has-image .atelier-category-desc p {
+  color: #ffffff;
+}
+
+/* Classic réservait 220 px pour une couverture affichée à côté du texte. */
+.block-category {
+  min-height: 0;
+}
+
+@media (max-width: 767px) {
+  .atelier-category-hero,
+  .atelier-category-hero.has-image {
+    min-height: 150px;
+  }
+
+  .atelier-category-hero-inner {
+    padding: 1.25rem;
+  }
+
+  .atelier-category-title {
+    font-size: 1.625rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   27. Tuiles de sous-catégories
+   Classic rend un conteneur d'image VIDE quand la catégorie n'a pas de
+   couverture, d'où les rectangles blancs. On en fait des cartes, avec un
+   aplat et un pictogramme là où l'image manque.
+   -------------------------------------------------------------------------- */
+#subcategories {
+  padding: 1.25rem;
+}
+
+#subcategories .subcategory-heading {
+  margin: 0 0 1rem;
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--atelier-dark);
+  text-transform: none;
+}
+
+#subcategories .subcategories-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#subcategories .subcategories-list li {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+#subcategories .subcategory-image {
+  margin: 0 0 .6rem;
+}
+
+#subcategories ul li .subcategory-image a.img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--atelier-soft);
+  border: 0;
+  border-radius: var(--atelier-radius-thumb);
+}
+
+#subcategories ul li .subcategory-image a.img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Pictogramme de remplacement, affiché seulement si le lien ne contient
+   aucune image. La police Material Icons est déjà chargée par Classic. */
+#subcategories ul li .subcategory-image a.img:not(:has(img))::after {
+  content: "storefront";
+  font-family: 'Material Icons';
+  font-size: 2rem;
+  font-weight: normal;
+  color: var(--atelier-accent);
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+}
+
+/* Classic écrit « #subcategories ul li .subcategory-name » : il faut le même
+   niveau de spécificité pour annuler ses majuscules. */
+#subcategories ul li .subcategory-name {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--atelier-dark);
+  text-transform: none;
+}
+
+#subcategories ul li .subcategory-name:hover {
+  color: var(--atelier-accent-hover);
+}
+
+/* Et une bordure cyan de 5 px au survol de la tuile, qui déformait la
+   vignette en réduisant son rembourrage. */
+#subcategories ul li:hover .subcategory-image a {
+  padding: 0;
+  border: 0;
+  box-shadow: var(--atelier-shadow-hover);
+}
+
+#subcategories .cat_desc {
+  font-size: .8125rem;
+  color: var(--atelier-text);
 }
