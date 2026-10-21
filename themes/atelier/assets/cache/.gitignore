@@ -1,0 +1,9 @@
+# Dossier de cache des assets concaténés, créé par le cœur
+# (classes/assets/CccReducer.php:52, appelé depuis FrontController.php:226).
+# Le dossier doit seulement EXISTER : le cœur n'y écrit rien tant que la
+# concaténation des assets est désactivée. NE PAS le donner à www-data —
+# monté depuis l'hôte, Git ne pourrait plus le supprimer et un « git switch »
+# échouerait. On ne versionne que ce fichier et index.php.
+*
+!.gitignore
+!index.php

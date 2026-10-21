@@ -1,0 +1,2856 @@
+/* ==========================================================================
+   Thème « atelier » — feuille de style du thème enfant.
+
+   Ce fichier est chargé automatiquement par le cœur avec la priorité 1000
+   (classes/controller/FrontController.php:980), donc APRÈS le theme.css de
+   Classic : nos règles l'emportent sans avoir à abuser de !important.
+
+   Design inspiré de FoodMart (TemplatesJungle, https://templatesjungle.com/) :
+   seules les VALEURS de la charte ont été relevées, aucun fichier du modèle
+   n'est repris ici.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Polices embarquées
+   Nunito et Open Sans sont des polices « variables » : un seul fichier
+   couvre toute la plage de graisses, d'où « font-weight: 400 700 ».
+   Chemins relatifs à CE fichier, donc valables même avec use_parent_assets.
+   Licences : assets/fonts/nunito-OFL.txt et opensans-OFL.txt (SIL OFL 1.1).
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../fonts/nunito-latin-var.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../fonts/opensans-latin-var.woff2') format('woff2');
+}
+
+/* --------------------------------------------------------------------------
+   2. Jetons de design (charte FoodMart)
+   -------------------------------------------------------------------------- */
+:root {
+  --atelier-accent: #FFC43F;
+  --atelier-accent-hover: #F7A422;
+  --atelier-dark: #222222;
+  --atelier-text: #747474;
+  --atelier-grey: #DBDBDB;
+  --atelier-light: #FAFAFA;
+  --atelier-blue-grey: #6995B1;
+  --atelier-soft: #FFF9EB;
+  --atelier-success: #A3BE4C;
+
+  --atelier-border-card: #FBFBFB;
+  --atelier-thumb-bg: #F9F9F9;
+  --atelier-radius-card: 16px;
+  --atelier-radius-thumb: 12px;
+  --atelier-radius-field: 8px;
+  --atelier-shadow: 0 5px 22px rgba(0, 0, 0, .04);
+  --atelier-shadow-hover: 0 21px 44px rgba(0, 0, 0, .08);
+
+  --atelier-font-body: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --atelier-font-title: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   3. Base typographique
+   -------------------------------------------------------------------------- */
+body {
+  font-family: var(--atelier-font-body);
+  color: var(--atelier-text);
+  background: #ffffff;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark);
+  letter-spacing: .03em;
+}
+
+/* Classic écrit tous les titres en majuscules (« .h1,.h2,.h3{text-transform:
+   uppercase} » dans son theme.css). La maquette est en casse normale, et les
+   majuscules accentuées se lisent mal en français : on annule globalement. */
+.h1, .h2, .h3 {
+  text-transform: none;
+}
+
+/* Les gabarits de modules portent en plus la classe utilitaire Bootstrap
+   « text-uppercase », déclarée en !important : seul un !important l'annule. */
+.text-uppercase {
+  text-transform: none !important;
+}
+
+a {
+  color: var(--atelier-dark);
+}
+
+a:hover,
+a:focus {
+  color: var(--atelier-accent-hover);
+  text-decoration: none;
+}
+
+#wrapper {
+  background: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   4. Boutons
+   Classic peint .btn-primary en cyan (#24b9d7 dans son theme.css) : on le
+   repasse au jaune de la charte. Le texte reste SOMBRE et non blanc, car
+   du blanc sur #FFC43F ne passe pas le contraste minimal de lisibilité.
+   -------------------------------------------------------------------------- */
+.btn {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: none;
+  border-radius: var(--atelier-radius-field);
+  transition: background-color .2s ease-out, color .2s ease-out;
+}
+
+.btn-primary,
+.btn-primary:not(:disabled):not(.disabled):active {
+  color: var(--atelier-dark);
+  background-color: var(--atelier-accent);
+  border-color: transparent;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  color: var(--atelier-dark);
+  background-color: var(--atelier-accent-hover);
+  border-color: transparent;
+}
+
+.btn-secondary,
+.btn-tertiary {
+  color: var(--atelier-dark);
+  background-color: var(--atelier-light);
+  border: 1px solid var(--atelier-grey);
+}
+
+.btn-secondary:hover,
+.btn-tertiary:hover {
+  color: var(--atelier-dark);
+  background-color: var(--atelier-grey);
+}
+
+/* Le focus clavier doit rester visible : c'est le seul repère pour qui
+   navigue sans souris. */
+.btn:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--atelier-accent-hover);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   5. Champs de formulaire et boutons radio
+   -------------------------------------------------------------------------- */
+.form-control,
+.input-group .form-control,
+select.form-control,
+textarea.form-control {
+  color: var(--atelier-dark);
+  background: #ffffff;
+  border: 1px solid var(--atelier-grey);
+  border-radius: var(--atelier-radius-field);
+}
+
+.form-control:focus,
+.input-group.focus {
+  border-color: var(--atelier-accent);
+  box-shadow: none;
+  outline: 0;
+}
+
+.form-control-label {
+  color: var(--atelier-dark);
+  font-weight: 600;
+}
+
+/* .custom-radio sert aussi aux CRÉNEAUX du module Click & Collect
+   (hook displayCarrierExtraContent) : toute modification ici se voit à
+   l'étape « Livraison ». Pastille sombre sur anneau jaune = contraste net. */
+.custom-radio {
+  border-color: var(--atelier-grey);
+}
+
+.custom-radio input[type="radio"]:checked + span {
+  background-color: var(--atelier-dark);
+}
+
+.custom-radio:has(input[type="radio"]:checked) {
+  border-color: var(--atelier-accent);
+  border-width: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   6. Cartes et blocs de contenu
+   -------------------------------------------------------------------------- */
+.card,
+.page-content,
+.block-categories,
+.products-selection,
+#js-product-list-top,
+.product-miniature .thumbnail-container {
+  background: #ffffff;
+  border: 1px solid var(--atelier-border-card);
+  border-radius: var(--atelier-radius-card);
+  box-shadow: var(--atelier-shadow);
+}
+
+.card-block,
+.page-content {
+  padding: 1.25rem;
+}
+
+/* --------------------------------------------------------------------------
+   7. En-tête
+   -------------------------------------------------------------------------- */
+.header-nav {
+  border-bottom: 1px solid #f1f1f1;
+  background: #ffffff;
+}
+
+.header-top {
+  background: #ffffff;
+}
+
+/* Barre de recherche arrondie posée sur le gris clair de la charte. */
+.header-top .search-widgets form,
+#search_widget form {
+  background: var(--atelier-light);
+  border-radius: 999px;
+  padding: .25rem .75rem;
+}
+
+.header-top .search-widgets form input[type="text"],
+#search_widget form input[type="text"] {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: var(--atelier-dark);
+}
+
+.header-top .search-widgets form button[type="submit"] i,
+#search_widget form button[type="submit"] i {
+  color: var(--atelier-dark);
+}
+
+/* Compte, contact et panier.
+   Classic écrit « #header .header-nav .blockcart » (1 identifiant + 2 classes) :
+   un sélecteur moins spécifique serait ignoré, d'où le #header repris ici. */
+#header .header-nav .user-info a,
+#header .header-nav .contact-link a,
+#header .header-nav .blockcart a {
+  color: var(--atelier-dark);
+}
+
+/* « .cart-preview.active » (panier non vide) est repeint en cyan par Classic :
+   on couvre les deux états pour que la gélule reste jaune. */
+#header .header-nav .blockcart,
+#header .header-nav .cart-preview.active {
+  height: auto;
+  margin-left: .9375rem;
+  padding: .4rem 1.1rem;
+  background: var(--atelier-accent);
+  border-radius: 999px;
+}
+
+#header .header-nav .cart-preview .shopping-cart {
+  color: var(--atelier-dark);
+}
+
+#header .header-nav .blockcart .header,
+#header .header-nav .blockcart .header > a {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+#header .header-nav .blockcart .cart-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  text-align: left;
+}
+
+#header .header-nav .blockcart.active a,
+#header .header-nav .blockcart.active i,
+#header .header-nav .cart-preview.active a,
+#header .header-nav .cart-preview.active i {
+  color: var(--atelier-dark);
+}
+
+#header .header-nav .blockcart a:hover {
+  color: var(--atelier-dark);
+}
+
+/* Libellé « Votre panier » au-dessus du total (surcharge ps_shoppingcart). */
+#header .header-nav .blockcart .cart-label {
+  font-size: .75rem;
+  color: var(--atelier-dark);
+}
+
+#header .header-nav .blockcart .cart-total-value {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark);
+}
+
+/* Menu principal de niveau 2 */
+#header .header-top .top-menu a[data-depth="0"] {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark);
+  text-transform: none;
+}
+
+#header .header-top .top-menu a[data-depth="0"]:hover {
+  color: var(--atelier-accent-hover);
+}
+
+/* Titres de section (« Produits populaires »…) : à gauche et plus grands. */
+#products .products-section-title,
+.featured-products .products-section-title,
+.product-accessories .products-section-title {
+  font-weight: 700;
+  font-size: 1.75rem;
+  text-align: left;
+}
+
+/* Logo texte (surcharge de header.tpl).
+   Classic place le logo dans une colonne col-md-2 (≈190 px à 1280 px), trop
+   étroite pour « L'Atelier des Saveurs » : on laisse la colonne prendre la
+   largeur de son contenu plutôt que de rapetisser le texte. */
+@media (min-width: 768px) {
+  .header-top #_desktop_logo {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: none;
+  }
+}
+
+.atelier-logo-wrapper {
+  margin: 0;
+  font-size: inherit;
+  white-space: nowrap;
+}
+
+.atelier-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.atelier-logo-text {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.1;
+  color: var(--atelier-dark);
+  letter-spacing: .01em;
+}
+
+.atelier-logo:hover .atelier-logo-text {
+  color: var(--atelier-accent-hover);
+}
+
+/* Lien « Retrait en boutique gratuit » : met en avant le Click & Collect. */
+.atelier-pickup-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .4rem .9rem;
+  background: var(--atelier-soft);
+  border-radius: 999px;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--atelier-dark);
+  white-space: nowrap;
+}
+
+.atelier-pickup-link:hover {
+  background: var(--atelier-accent);
+  color: var(--atelier-dark);
+}
+
+.atelier-pickup-link .material-icons {
+  font-size: 1.125rem;
+}
+
+/* En-tête sur deux niveaux, comme la maquette.
+   GRILLE plutôt que flex : chaque élément est posé dans une zone nommée, donc
+   la disposition ne dépend plus de la largeur des contenus. Un flex qui se
+   replie faisait basculer le bloc « compte + panier » sur sa propre ligne dès
+   qu'un client était connecté (son nom s'ajoute aux liens).
+   displayTop rend la recherche ET le menu : chacun reçoit sa zone. */
+.atelier-header-row {
+  padding: .75rem 0;
+}
+
+@media (min-width: 768px) {
+  .atelier-header-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "logo search aside"
+      "menu menu   pickup";
+    align-items: center;
+    column-gap: 1.25rem;
+    row-gap: .5rem;
+  }
+
+  .atelier-header-row > #_desktop_logo {
+    grid-area: logo;
+    width: auto;
+    max-width: none;
+    padding: 0;
+  }
+
+  .atelier-header-row #search_widget {
+    grid-area: search;
+    width: 100%;
+    max-width: 520px;
+    margin: 0;
+  }
+
+  .atelier-header-aside {
+    grid-area: aside;
+  }
+
+  .atelier-header-row #_desktop_top_menu {
+    grid-area: menu;
+    border-top: 1px solid #f1f1f1;
+    padding-top: .25rem;
+  }
+
+  .atelier-header-row .atelier-pickup-link {
+    grid-area: pickup;
+    justify-self: end;
+    align-self: center;
+    margin-top: .25rem;
+  }
+}
+
+.atelier-header-aside {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .75rem;
+}
+
+/* La barre de contact de Classic ne sert plus qu'au mobile sur les pages de
+   la boutique, puisque son contenu est remonté au niveau 1 de l'en-tête.
+   LE TUNNEL EST EXCLU : il a son propre en-tête, où c'est justement
+   « header_nav » qui porte le logo
+   (themes/classic/templates/checkout/_partials/header.tpl:25-48), son
+   « header_top » étant déjà masqué au-dessus de 768 px par « hidden-md-up ».
+   Sans le body:not(#checkout), la page /commande n'aurait plus d'en-tête
+   du tout sur desktop. */
+.header-nav {
+  border-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  body:not(#checkout) .header-nav {
+    display: none;
+  }
+}
+
+/* Coordonnées (ps_contactinfo) : le libellé au-dessus du numéro, comme le
+   bloc « For Support? » de la maquette.
+   Le gabarit du module écrit « Appelez-nous : » en texte brut, hors de toute
+   balise. Dans un conteneur flex, un nœud de texte devient un élément à part
+   entière : passer #contact-link en colonne suffit à les empiler, sans avoir
+   à surcharger le gabarit de ps_contactinfo. */
+.atelier-header-aside #contact-link {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  font-size: .75rem;
+  color: var(--atelier-text);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.atelier-header-aside #contact-link a {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--atelier-dark);
+}
+
+/* Compte : pastille ronde grise (l'intitulé reste lisible au survol). */
+.atelier-header-aside .user-info a {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .45rem .9rem;
+  background: var(--atelier-light);
+  border-radius: 999px;
+  color: var(--atelier-dark);
+  white-space: nowrap;
+}
+
+.atelier-header-aside .user-info a:hover {
+  background: var(--atelier-grey);
+  color: var(--atelier-dark);
+}
+
+/* Panier : la gélule jaune. Le bloc n'est plus dans .header-nav depuis que
+   l'en-tête est sur deux niveaux, d'où ces sélecteurs. Classic repeint le
+   panier rempli en cyan (« .cart-preview.active ») : les deux états sont
+   couverts ici. */
+.atelier-header-aside .blockcart,
+.atelier-header-aside .cart-preview.active {
+  height: auto;
+  margin: 0;
+  padding: .4rem 1.1rem;
+  background: var(--atelier-accent);
+  border-radius: 999px;
+}
+
+.atelier-header-aside .blockcart .header,
+.atelier-header-aside .blockcart .header > a {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.atelier-header-aside .blockcart .cart-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.atelier-header-aside .blockcart .cart-label {
+  font-size: .75rem;
+  color: var(--atelier-dark);
+}
+
+.atelier-header-aside .blockcart .cart-total-value {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark);
+}
+
+.atelier-header-aside .blockcart a,
+.atelier-header-aside .blockcart i,
+.atelier-header-aside .blockcart .shopping-cart,
+.atelier-header-aside .cart-preview.active a,
+.atelier-header-aside .cart-preview.active i {
+  color: var(--atelier-dark);
+}
+
+/* --------------------------------------------------------------------------
+   8. Catalogue : carte produit, listes, pagination
+   -------------------------------------------------------------------------- */
+/* Hauteur égale pour toutes les cartes d'une même ligne : la colonne
+   Bootstrap s'étire déjà (align-items: stretch), il suffit que la carte et
+   sa description prennent toute la hauteur pour que « margin-top: auto »
+   pousse le bouton en bas. */
+.js-product.product {
+  display: flex;
+  margin-bottom: 1.563rem;
+}
+
+.product-miniature {
+  width: 100%;
+}
+
+.product-miniature .thumbnail-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 0;
+  padding: 16px;
+  overflow: visible;
+  transition: box-shadow .3s ease-out;
+}
+
+/* Classic fixe « height: calc(100% - 70px) » sur la vignette, pensé pour une
+   carte à hauteur figée : inutile et gênant dans une carte en colonne flex. */
+.product-miniature .thumbnail-container .product-thumbnail {
+  height: auto;
+}
+
+.product-miniature .thumbnail-container:hover {
+  box-shadow: var(--atelier-shadow-hover);
+}
+
+/* La vignette est posée DANS un cadre gris doux arrondi, avec une marge
+   autour : la maquette utilise des détourages sur fond gris, nos photos sont
+   des carrés pleins, le cadre joue donc le rôle de passe-partout. */
+.product-miniature .thumbnail-top {
+  position: relative;
+  padding: 14px;
+  background: var(--atelier-thumb-bg);
+  border-radius: var(--atelier-radius-thumb);
+  overflow: hidden;
+}
+
+.product-miniature .thumbnail-top .product-thumbnail img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+/* « Aperçu rapide » au survol.
+   Classic le fait glisser depuis le bas sous la forme d'un bandeau blanc
+   (« top: 100% » puis « top: calc(100% - 2.5rem) » au survol), ce qui rogne
+   la photo. On le transforme en voile sur l'image avec un bouton centré :
+   mêmes sélecteurs, donc même spécificité, et notre feuille est chargée
+   après celle de Classic. Les 14 px d'écart reprennent la marge du cadre.
+   Classic masque ce bloc sous 575 px (pas de survol au doigt) : on garde. */
+.product-miniature .highlighted-informations {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  bottom: 14px;
+  left: 14px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: auto;
+  height: auto;
+  padding: 0;
+  background: rgba(34, 34, 34, .4);
+  border-radius: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .25s ease-out;
+}
+
+.product-miniature .thumbnail-container:hover .highlighted-informations,
+.product-miniature .thumbnail-container:focus-within .highlighted-informations {
+  top: 14px;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Classic dessine un liseré en ::after sur ce bloc : inutile ici. */
+.product-miniature .thumbnail-container:focus .highlighted-informations::after,
+.product-miniature .thumbnail-container:hover .highlighted-informations::after {
+  display: none;
+}
+
+.product-miniature .highlighted-informations .quick-view {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .5rem 1.1rem;
+  font-family: var(--atelier-font-title);
+  font-size: .875rem;
+  font-weight: 700;
+  color: var(--atelier-dark);
+  background: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+  transition: background-color .2s ease-out;
+}
+
+.product-miniature .highlighted-informations .quick-view:hover,
+.product-miniature .highlighted-informations .quick-view:focus {
+  background: var(--atelier-accent);
+  color: var(--atelier-dark);
+}
+
+.product-miniature .highlighted-informations .quick-view .material-icons {
+  font-size: 1.125rem;
+}
+
+.product-miniature .variant-links {
+  top: 0;
+  min-height: 0;
+  padding-top: 0;
+  background: transparent;
+}
+
+.product-miniature .product-description {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  padding: .75rem .25rem 0;
+  text-align: left;
+}
+
+/* Classic met « text-transform: capitalize » sur le titre, ce qui écrit
+   « Confiture De Fraises » : incorrect en français, on le retire. */
+.product-miniature .product-title {
+  text-align: left;
+  text-transform: none;
+}
+
+.product-miniature .product-title a {
+  font-family: var(--atelier-font-title);
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: var(--atelier-dark);
+  text-align: left;
+}
+
+.product-miniature .product-price-and-shipping {
+  text-align: left;
+}
+
+/* Les prix doivent tomber à la même hauteur d'une carte à l'autre : on
+   réserve deux lignes au titre et une à la ligne d'information, même quand
+   elle est vide. « margin-top: auto » sur la rangée d'action aligne ensuite
+   les boutons, quelle que soit la hauteur de la carte. */
+.product-miniature .product-title {
+  margin-top: 0;
+  min-height: 2.6em;
+  line-height: 1.3;
+}
+
+.product-miniature .product-price-and-shipping {
+  margin-bottom: 0;
+}
+
+.product-miniature .product-price-and-shipping .price {
+  font-weight: 600;
+  font-size: 1.375rem;
+  color: var(--atelier-dark);
+}
+
+.product-miniature .product-price-and-shipping .regular-price {
+  color: var(--atelier-text);
+}
+
+/* Ligne d'information sous le titre : format par défaut d'un produit à
+   déclinaisons, et emplacement des avis (vide tant qu'aucun n'a été déposé).
+   La disponibilité n'y figure pas : elle n'est pas renseignée dans les listes
+   de produits, seulement sur la fiche. */
+.atelier-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem .5rem;
+  margin: .35rem 0 .5rem;
+  min-height: 1.4em;
+  font-size: .75rem;
+  line-height: 1.4;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: #9D9D9D;
+}
+
+.atelier-card-format {
+  color: var(--atelier-accent-hover);
+  font-weight: 600;
+}
+
+/* Rangée d'action, en bas de carte : compteur puis bouton.
+   Le compteur est un <input type="number"> : les flèches « + / − » sont
+   fournies par le navigateur, aucun JavaScript n'est nécessaire. */
+.atelier-card-actions {
+  display: flex;
+  margin-top: auto;
+  padding-top: .75rem;
+}
+
+/* Un bouton seul (« Choisir le format », « Voir le produit ») occupe toute la
+   largeur, comme le formulaire d'ajout au panier des autres cartes. */
+.atelier-card-actions > .atelier-card-btn,
+.atelier-card-form {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.atelier-card-form {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.atelier-card-qty {
+  flex: 0 0 54px;
+  width: 54px;
+  height: 40px;
+  padding: 0 0 0 .5rem;
+  border: 1px solid var(--atelier-grey);
+  border-radius: var(--atelier-radius-field);
+  color: var(--atelier-dark);
+  text-align: center;
+  background: #ffffff;
+}
+
+/* Le bouton doit pouvoir RÉTRÉCIR : une carte de la grille d'accueil ne
+   laisse qu'environ 218 px utiles, et « white-space: nowrap » empêchait le
+   bouton de descendre sous la largeur de son texte, d'où le débordement.
+   « min-width: 0 » lève la largeur minimale implicite d'un élément flex. */
+.atelier-card-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 40px;
+  padding: .4rem .5rem;
+  font-size: .8125rem;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+}
+
+.atelier-card-btn .material-icons {
+  flex: 0 0 auto;
+  font-size: 1.0625rem;
+}
+
+
+
+/* Pastilles « Nouveau », « Promo », « Rupture de stock ». */
+.product-flags li.product-flag {
+  border-radius: 999px;
+  padding: .15rem .75rem;
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: .75rem;
+  letter-spacing: .03em;
+  background: var(--atelier-success);
+  color: #ffffff;
+}
+
+.product-flags li.product-flag.discount,
+.product-flags li.product-flag.on-sale {
+  background: var(--atelier-accent);
+  color: var(--atelier-dark);
+}
+
+/* Bouton « favoris » : blockwishlist l'injecte en JS sur chaque miniature
+   (modules/blockwishlist/public/product.bundle.js). On lui donne la forme
+   ronde de la maquette. */
+.wishlist-button-add {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid var(--atelier-grey);
+  box-shadow: none;
+}
+
+.breadcrumb {
+  background: transparent;
+  padding-left: 0;
+}
+
+.pagination .page-list {
+  background: transparent;
+}
+
+.pagination .current a,
+.pagination a:hover {
+  color: var(--atelier-accent-hover);
+}
+
+/* --------------------------------------------------------------------------
+   8 bis. Bandeau d'accueil
+   Grille 12 colonnes de la maquette : grand bloc sur 7 colonnes et 2 hauteurs,
+   deux cartes sur 5 colonnes. Repli en une seule colonne sous 1140 px.
+   -------------------------------------------------------------------------- */
+.atelier-hero {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin: 1.5rem 0 2.5rem;
+}
+
+.atelier-hero-main {
+  grid-area: 1 / 1 / 3 / 8;
+}
+
+.atelier-hero > .atelier-promo:nth-of-type(2) {
+  grid-area: 1 / 8 / 2 / 13;
+}
+
+.atelier-hero > .atelier-promo:nth-of-type(3) {
+  grid-area: 2 / 8 / 3 / 13;
+}
+
+.atelier-hero-main,
+.atelier-promo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  overflow: hidden;
+  padding: 2rem;
+  border-radius: var(--atelier-radius-thumb);
+}
+
+.atelier-hero-main {
+  background: var(--atelier-soft);
+  padding: 2.5rem;
+}
+
+.atelier-promo-sucree {
+  background: #EEF5E5;
+}
+
+.atelier-promo-salee {
+  background: #E6F3FB;
+}
+
+.atelier-hero-text,
+.atelier-promo-text {
+  flex: 1 1 58%;
+  min-width: 0;
+}
+
+.atelier-hero-eyebrow,
+.atelier-promo-eyebrow {
+  margin-bottom: .5rem;
+  font-family: var(--atelier-font-title);
+  font-size: 1.125rem;
+  color: var(--atelier-accent-hover);
+}
+
+.atelier-hero-title {
+  margin: 0 0 .75rem;
+  font-size: 2.75rem;
+  line-height: 1.1;
+}
+
+.atelier-hero-lead {
+  margin-bottom: 1.5rem;
+  max-width: 34rem;
+}
+
+.atelier-promo-title {
+  margin: 0 0 .5rem;
+  font-size: 1.625rem;
+}
+
+.atelier-promo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-weight: 600;
+  color: var(--atelier-dark);
+}
+
+.atelier-promo-link:hover {
+  color: var(--atelier-accent-hover);
+}
+
+.atelier-promo-link .material-icons {
+  font-size: 1.125rem;
+}
+
+/* Les visuels sont nos photos produits, carrées : on les arrondit et on les
+   laisse déborder légèrement, comme les détourages de la maquette. */
+.atelier-hero-img,
+.atelier-promo-img {
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.atelier-hero-img {
+  width: 260px;
+  height: 260px;
+}
+
+.atelier-promo-img {
+  width: 130px;
+  height: 130px;
+}
+
+@media (max-width: 1139px) {
+  .atelier-hero {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  .atelier-hero-main,
+  .atelier-hero > .atelier-promo:nth-of-type(2),
+  .atelier-hero > .atelier-promo:nth-of-type(3) {
+    grid-area: auto;
+  }
+
+  .atelier-hero-title {
+    font-size: 2rem;
+  }
+
+  .atelier-hero-img {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+@media (max-width: 575px) {
+  .atelier-hero-main,
+  .atelier-promo {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+  }
+
+  .atelier-hero-img,
+  .atelier-promo-img {
+    align-self: center;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   9. Panier et tunnel de commande
+   On garde la structure de Classic : seules les couleurs et les formes
+   changent, pour ne rien casser dans un parcours déjà testé.
+   -------------------------------------------------------------------------- */
+.cart-grid-body .card,
+.cart-grid-right .card,
+body#checkout section.checkout-step {
+  border: 1px solid var(--atelier-border-card);
+  border-radius: var(--atelier-radius-card);
+  box-shadow: var(--atelier-shadow);
+}
+
+body#checkout section.checkout-step .step-title {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark);
+}
+
+body#checkout section.checkout-step.-current .step-title {
+  color: var(--atelier-dark);
+}
+
+.delivery-option {
+  background: var(--atelier-light);
+  border-radius: var(--atelier-radius-thumb);
+  margin-bottom: .75rem;
+  padding: .75rem;
+}
+
+.carrier-name {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark);
+}
+
+/* Liste des créneaux du module Click & Collect (hook
+   displayCarrierExtraContent, gabarit views/templates/hook/checkout_slots.tpl
+   du module : .nk-clickcollect > ul.list-unstyled > li > label > .custom-radio).
+   On ne touche pas au module : seule sa présentation est reprise ici. */
+.nk-clickcollect {
+  margin: .5rem 0 1rem;
+  padding: 1rem;
+  background: var(--atelier-soft);
+  border-radius: var(--atelier-radius-thumb);
+}
+
+.nk-clickcollect .h6 {
+  margin-bottom: .75rem;
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark);
+}
+
+.nk-clickcollect ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: .5rem;
+  margin: 0;
+}
+
+.nk-clickcollect li label {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin: 0;
+  padding: .5rem .75rem;
+  background: #ffffff;
+  border: 1px solid var(--atelier-grey);
+  border-radius: var(--atelier-radius-field);
+  color: var(--atelier-dark);
+  cursor: pointer;
+}
+
+.nk-clickcollect li label:hover {
+  border-color: var(--atelier-accent);
+}
+
+/* Le créneau choisi se voit d'un coup d'œil, pas seulement à la pastille. */
+.nk-clickcollect li label:has(input[type="radio"]:checked) {
+  background: var(--atelier-accent);
+  border-color: var(--atelier-accent);
+  font-weight: 600;
+}
+
+.cart-summary-line .value,
+.cart-total .value {
+  color: var(--atelier-dark);
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   10. Pied de page
+   -------------------------------------------------------------------------- */
+.footer-container {
+  background: var(--atelier-light);
+  border-top: 1px solid #f1f1f1;
+  box-shadow: none;
+  margin-top: 2rem;
+}
+
+.footer-container .h3,
+.footer-container h3,
+.footer-container .block-contact-title {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark);
+  text-transform: none;
+}
+
+.footer-container li a {
+  color: var(--atelier-text);
+}
+
+.footer-container li a:hover {
+  color: var(--atelier-accent-hover);
+}
+
+/* Bloc « lettre d'information » : panneau en deux colonnes, texte à gauche,
+   formulaire à droite, comme la maquette. */
+/* Classic bride ce bloc : largeur plafonnée à 50rem, bordure basse, et
+   surtout un bouton d'envoi en position ABSOLUE collé en bas à droite du
+   formulaire (hérité de la barre de recherche, qu'il partage). Il faut donc
+   remettre ces trois points à zéro avant de poser notre mise en page. */
+.block_newsletter {
+  width: 100%;
+  max-width: none;
+  margin: 0 0 2rem;
+  padding: 0;
+  border-bottom: 0;
+  background: transparent;
+}
+
+.block_newsletter form {
+  position: static;
+}
+
+/* Classic habille ce bouton comme celui de la barre de recherche :
+   « .block_newsletter form button[type=submit] » (2 classes + élément +
+   attribut) l'emporte sur une simple classe. On reprend donc le même niveau
+   de spécificité pour le replacer dans le flux et lui rendre son fond. */
+.block_newsletter .atelier-newsletter-form button[type="submit"] {
+  position: static;
+  right: auto;
+  bottom: auto;
+  margin-top: .6rem;
+  min-height: 52px;
+  padding: .5rem 1.25rem;
+  background: var(--atelier-dark);
+  border: 0;
+  border-radius: var(--atelier-radius-field);
+  color: #ffffff;
+}
+
+.block_newsletter .atelier-newsletter-form button[type="submit"]:hover,
+.block_newsletter .atelier-newsletter-form button[type="submit"]:focus {
+  background: #000000;
+  color: #ffffff;
+}
+
+.block_newsletter form input {
+  height: auto;
+}
+
+.atelier-newsletter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 2.5rem;
+  padding: 3rem;
+  background: #E6F3FB;
+  border-radius: var(--atelier-radius-card);
+}
+
+.atelier-newsletter-eyebrow {
+  margin-bottom: .5rem;
+  font-family: var(--atelier-font-title);
+  font-size: 1.125rem;
+  color: var(--atelier-accent-hover);
+}
+
+.atelier-newsletter-title {
+  margin: 0 0 .75rem;
+  font-size: 2.25rem;
+  line-height: 1.15;
+}
+
+.atelier-newsletter-title span {
+  display: block;
+  color: var(--atelier-dark);
+}
+
+.atelier-newsletter-lead {
+  margin: 0;
+  max-width: 34rem;
+}
+
+.atelier-newsletter-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: .4rem;
+  text-align: left;
+}
+
+/* Classic aligne TOUS les intitulés à droite (« .label,label{…;
+   text-align:right} »), ce qui convient à ses formulaires horizontaux mais
+   pas à un intitulé posé au-dessus de son champ. On ne touche pas à la règle
+   globale, on corrige seulement ici. */
+.atelier-newsletter-label {
+  margin: 0;
+  font-weight: 600;
+  color: var(--atelier-dark);
+  text-align: left;
+}
+
+.atelier-newsletter-form input[type="email"] {
+  width: 100%;
+  height: 52px;
+  padding: 0 1rem;
+  background: #ffffff;
+  border: 1px solid transparent;
+  border-radius: var(--atelier-radius-field);
+  color: var(--atelier-dark);
+}
+
+.atelier-newsletter-form input[type="email"]:focus {
+  border-color: var(--atelier-accent);
+  outline: 0;
+}
+
+/* Bouton sombre, comme la maquette : il tranche sur le fond bleu clair,
+   là où le jaune de la charte s'y lirait mal. (Son habillage est posé plus
+   haut, au niveau de spécificité imposé par Classic.) */
+.atelier-newsletter-conditions {
+  margin: .25rem 0 0;
+  font-size: .8125rem;
+}
+
+@media (max-width: 991px) {
+  .atelier-newsletter {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 1.75rem;
+  }
+
+  .atelier-newsletter-title {
+    font-size: 1.75rem;
+  }
+}
+
+/* Crédit de la maquette dont le design s'inspire : la licence FoodMart
+   impose de conserver un lien vers templatesjungle.com. */
+.atelier-credit {
+  padding: 1rem 0;
+  font-size: .8125rem;
+  text-align: center;
+  color: var(--atelier-text);
+}
+
+/* --------------------------------------------------------------------------
+   11. Adaptations mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 1139px) {
+  .product-miniature .product-title a {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Rangée mobile de l'en-tête : Classic la construit en float
+     (.float-xs-left / .float-xs-right), si bien que le logo texte passe
+     SOUS les icônes et les chevauche. On la repasse en flex pour que les
+     quatre éléments se partagent la largeur. Le !important est imposé par
+     les classes utilitaires Bootstrap, elles-mêmes en !important. */
+  #header .header-nav .mobile {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  #header .header-nav .mobile > div {
+    float: none !important;
+  }
+
+  #header .header-nav .mobile #_mobile_logo {
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+  }
+
+  #header .header-nav .mobile #_mobile_user_info {
+    order: 2;
+  }
+
+  #header .header-nav .mobile #_mobile_cart {
+    order: 3;
+  }
+
+  #header .header-nav .mobile .clearfix {
+    display: none;
+  }
+
+  #header .header-nav .blockcart {
+    margin-left: 0;
+    padding: .25rem .6rem;
+  }
+
+  .product-miniature .thumbnail-container {
+    padding: 12px;
+  }
+
+  .block_newsletter {
+    padding: 1rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   12. Allègement de l'en-tête
+   Le niveau 1 portait logo, recherche, téléphone, compte, déconnexion et
+   panier : trop d'éléments. Le téléphone ne s'affiche qu'à partir de 1200 px
+   (il reste dans le pied de page et sur la page Contact), et le bloc compte
+   a été compacté dans sa surcharge de gabarit.
+   -------------------------------------------------------------------------- */
+@media (max-width: 1199px) {
+  .atelier-header-aside #_desktop_contact_link {
+    display: none;
+  }
+}
+
+.atelier-header-aside .atelier-account {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  max-width: 11rem;
+  padding: .45rem .9rem;
+  background: var(--atelier-light);
+  border-radius: 999px;
+  color: var(--atelier-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atelier-header-aside .atelier-account:hover {
+  background: var(--atelier-grey);
+  color: var(--atelier-dark);
+}
+
+.atelier-header-aside .atelier-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--atelier-light);
+  color: var(--atelier-text);
+}
+
+.atelier-header-aside .atelier-logout:hover {
+  background: var(--atelier-grey);
+  color: var(--atelier-dark);
+}
+
+/* --------------------------------------------------------------------------
+   13. Tunnel de commande : les étapes en barre horizontale
+   Classic empile les étapes verticalement. Pour les aligner sans réécrire le
+   moindre gabarit, le conteneur devient une GRILLE et chaque <section
+   class="checkout-step"> passe en « display: contents » : sa boîte disparaît
+   et ses deux enfants (le titre et le contenu) deviennent eux-mêmes des
+   cases de la grille. Les titres se rangent alors en première rangée, et le
+   contenu de l'étape courante occupe toute la seconde.
+   Cela fonctionne parce que Classic masque déjà le contenu des étapes non
+   courantes (« .checkout-step.-current .content{display:block} », les autres
+   en display:none) : une seule case de contenu existe à la fois.
+   Les sélecteurs reprennent le préfixe « body#checkout section.checkout-step »
+   de Classic, sans quoi ils seraient moins spécifiques et ignorés.
+   -------------------------------------------------------------------------- */
+@media (min-width: 768px) {
+  body#checkout .cart-grid-body {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: .5rem;
+    align-content: start;
+    padding: 1.5rem;
+    background: #ffffff;
+    border: 1px solid var(--atelier-border-card);
+    border-radius: var(--atelier-radius-card);
+    box-shadow: var(--atelier-shadow);
+  }
+
+  body#checkout section.checkout-step {
+    display: contents;
+  }
+
+  body#checkout section.checkout-step .step-title {
+    grid-row: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .4rem;
+    padding: 0 .25rem 1.25rem;
+    margin: 0;
+    border: 0;
+    font-family: var(--atelier-font-title);
+    font-size: .8125rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    text-transform: none;
+    letter-spacing: .02em;
+    color: var(--atelier-text);
+  }
+
+  /* Classic décale le haut du titre pour la PREMIÈRE étape terminée et pour
+     celle qui suit l'étape courante, et ajoute un filet gris à la seconde :
+       « …-complete:first-of-type .step-title{padding-top:.625rem} »
+       « …-current + .checkout-step .step-title{padding-top:1.25rem;
+          border-top:1px solid #ddd} »
+     Pensé pour un accordéon vertical, cela désaligne les pastilles 1 et 4 de
+     notre barre horizontale et dessine un trait parasite. Les deux règles
+     sont donc annulées au MÊME niveau de spécificité (1 id, 4 classes,
+     2 éléments), sinon elles l'emportent. */
+  body#checkout section.checkout-step.-complete:first-of-type .step-title,
+  body#checkout section.checkout-step.-current + .checkout-step .step-title {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  /* Trait de liaison entre deux pastilles. */
+  body#checkout section.checkout-step .step-title::before {
+    content: "";
+    position: absolute;
+    top: 17px;
+    left: calc(-50% + 20px);
+    width: calc(100% - 40px);
+    height: 2px;
+    background: var(--atelier-grey);
+  }
+
+  body#checkout section.checkout-step:first-of-type .step-title::before {
+    display: none;
+  }
+
+  body#checkout section.checkout-step .step-number,
+  body#checkout section.checkout-step.-reachable.-current .step-number,
+  body#checkout section.checkout-step.-current.-reachable.-complete .step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid var(--atelier-grey);
+    color: var(--atelier-text);
+    font-size: .9375rem;
+  }
+
+  body#checkout section.checkout-step.-current .step-title {
+    color: var(--atelier-dark);
+  }
+
+  body#checkout section.checkout-step.-current .step-number,
+  body#checkout section.checkout-step.-reachable.-current .step-number {
+    background: var(--atelier-accent);
+    border-color: var(--atelier-accent);
+    color: var(--atelier-dark);
+  }
+
+  body#checkout section.checkout-step.-complete:not(.-current) .step-number {
+    background: var(--atelier-dark);
+    border-color: var(--atelier-dark);
+    color: #ffffff;
+  }
+
+  body#checkout section.checkout-step.-complete:not(.-current) .step-title::before {
+    background: var(--atelier-dark);
+  }
+
+  /* Pour une étape terminée, Classic remplace la pastille numérotée par une
+     coche verte :
+       « …-reachable.-complete h1 .done{display:inline-block} »
+       « …-reachable.-complete h1 .step-number{display:none} »
+     Dans une barre de progression, on veut garder les numéros. On inverse
+     les deux règles AU MÊME niveau de spécificité, sinon elles l'emportent. */
+  body#checkout section.checkout-step.-reachable.-complete h1 .done {
+    display: none;
+  }
+
+  body#checkout section.checkout-step.-reachable.-complete h1 .step-number {
+    display: inline-flex;
+  }
+
+  body#checkout section.checkout-step.-reachable.-complete h1 .step-edit {
+    position: static;
+    float: none;
+    display: block;
+    margin: 0;
+    font-size: .75rem;
+    text-transform: none;
+    color: var(--atelier-accent-hover);
+  }
+
+  /* Le contenu de l'étape courante occupe la seconde rangée, pleine largeur. */
+  body#checkout section.checkout-step .content {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    padding: 1.5rem 0 0;
+    border-top: 1px solid #f1f1f1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   14. Panier et colonne de droite
+   -------------------------------------------------------------------------- */
+.cart-container .cart-overview {
+  padding: 0;
+}
+
+.cart-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid #f3f3f3;
+}
+
+.cart-item:last-child {
+  border-bottom: 0;
+}
+
+.product-line-grid-left img {
+  border-radius: var(--atelier-radius-thumb);
+  background: var(--atelier-thumb-bg);
+}
+
+.product-line-info a.label {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--atelier-dark);
+  text-align: left;
+}
+
+.product-line-grid-right .cart-line-product-actions .remove-from-cart {
+  color: var(--atelier-text);
+}
+
+.product-line-grid-right .cart-line-product-actions .remove-from-cart:hover {
+  color: #C0392B;
+}
+
+.cart-summary .cart-summary-line .label,
+.cart-summary .cart-summary-line .value {
+  color: var(--atelier-dark);
+}
+
+.cart-summary .cart-total .label,
+.cart-summary .cart-total .value {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.cart-detailed-actions .btn-primary {
+  display: block;
+  width: 100%;
+}
+
+/* La colonne de droite débordait sur petit écran. */
+.cart-grid-right,
+.cart-grid-right .card {
+  min-width: 0;
+}
+
+/* --------------------------------------------------------------------------
+   15. En-tête des listes de produits (nouveautés, promotions, recherche)
+   Les pages de catégorie ont un encadré de présentation, les autres listes
+   affichaient un titre nu : on leur donne la même carte.
+   -------------------------------------------------------------------------- */
+#js-product-list-header {
+  margin: 0 0 1.25rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid var(--atelier-border-card);
+  border-radius: var(--atelier-radius-card);
+  box-shadow: var(--atelier-shadow);
+  font-size: 1.75rem;
+}
+
+#js-product-list-top.products-selection {
+  padding: .75rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+#js-product-list-top .total-products p {
+  margin: 0;
+  color: var(--atelier-text);
+}
+
+.products-sort-order .select-title {
+  border-radius: var(--atelier-radius-field);
+  border: 1px solid var(--atelier-grey);
+  background: #ffffff;
+  color: var(--atelier-dark);
+}
+
+/* --------------------------------------------------------------------------
+   16. Blocs de réassurance
+   -------------------------------------------------------------------------- */
+.blockreassurance_product {
+  display: grid;
+  gap: .75rem;
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  background: var(--atelier-light);
+  border-radius: var(--atelier-radius-card);
+}
+
+.blockreassurance_product > div {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+}
+
+.blockreassurance_product .item-product {
+  flex: 0 0 auto;
+  width: 28px;
+}
+
+.blockreassurance_product .block-title {
+  display: block;
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark) !important;
+}
+
+.blockreassurance_product p {
+  margin: 0;
+  font-size: .875rem;
+  color: var(--atelier-text) !important;
+}
+
+/* --------------------------------------------------------------------------
+   17. Avis clients (productcomments)
+   -------------------------------------------------------------------------- */
+#product-comments-list-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+#product-comments-list-header .comments-nb {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark);
+}
+
+#product-comments-list .post-product-comment,
+.post-product-comment,
+#product-comments-list-footer .btn-comment,
+a[data-target="#post-product-comment-modal"] {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .55rem 1.1rem;
+  background: var(--atelier-accent);
+  border: 0;
+  border-radius: var(--atelier-radius-field);
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark);
+}
+
+#product-comments-list .post-product-comment:hover,
+.post-product-comment:hover,
+a[data-target="#post-product-comment-modal"]:hover {
+  background: var(--atelier-accent-hover);
+  color: var(--atelier-dark);
+}
+
+/* --------------------------------------------------------------------------
+   18. Fenêtres modales (favoris, avis)
+   -------------------------------------------------------------------------- */
+.wishlist-modal .modal-content,
+.product-comment-modal .modal-content,
+#blockcart-modal .modal-content {
+  border: 0;
+  border-radius: var(--atelier-radius-card);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .18);
+  overflow: hidden;
+}
+
+.wishlist-modal .modal-header,
+.product-comment-modal .modal-header,
+#blockcart-modal .modal-header {
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: var(--atelier-soft);
+  border-bottom: 0;
+}
+
+.wishlist-modal .modal-title,
+.product-comment-modal .modal-header .h2 {
+  margin: 0;
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark);
+}
+
+/* La croix de fermeture était un carré bleu plein. */
+.wishlist-modal .modal-header .close,
+.product-comment-modal .modal-header .close,
+#blockcart-modal .modal-header .close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: #ffffff;
+  border: 1px solid var(--atelier-grey);
+  border-radius: 50%;
+  color: var(--atelier-dark);
+  opacity: 1;
+  text-shadow: none;
+}
+
+.wishlist-modal .modal-header .close:hover,
+.product-comment-modal .modal-header .close:hover,
+#blockcart-modal .modal-header .close:hover {
+  background: var(--atelier-accent);
+  color: var(--atelier-dark);
+}
+
+.wishlist-modal .modal-body,
+.wishlist-modal .modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 0;
+}
+
+.wishlist-modal .wishlist-add-to-new {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  color: var(--atelier-dark) !important;
+}
+
+.wishlist-modal .wishlist-add-to-new:hover {
+  color: var(--atelier-accent-hover) !important;
+}
+
+/* --------------------------------------------------------------------------
+   19. Section « Nos rayons » de l'accueil
+   Cartes à icône, comme la bande « Category » de la maquette.
+   -------------------------------------------------------------------------- */
+.atelier-rayons {
+  margin: 2.5rem 0;
+}
+
+.atelier-rayons-title {
+  margin: 0 0 1.25rem;
+  font-size: 1.75rem;
+}
+
+.atelier-rayons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.atelier-rayon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .4rem;
+  padding: 1.75rem 1.25rem;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid var(--atelier-border-card);
+  border-radius: var(--atelier-radius-card);
+  box-shadow: var(--atelier-shadow);
+  color: var(--atelier-dark);
+  transition: box-shadow .3s ease-out, transform .2s ease-out;
+}
+
+.atelier-rayon:hover {
+  box-shadow: var(--atelier-shadow-hover);
+  transform: translateY(-2px);
+  color: var(--atelier-dark);
+}
+
+.atelier-rayon-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: .35rem;
+  border-radius: 50%;
+  background: var(--atelier-soft);
+  color: var(--atelier-accent-hover);
+}
+
+.atelier-rayon-icon .material-icons {
+  font-size: 1.75rem;
+}
+
+.atelier-rayon-name {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.atelier-rayon-desc {
+  font-size: .875rem;
+  color: var(--atelier-text);
+}
+
+/* --------------------------------------------------------------------------
+   20. Corrections mobile
+   -------------------------------------------------------------------------- */
+
+/* Compteur de quantité du panier : Classic le construit en « float », ce qui
+   empile l'input et les flèches dès que la colonne est étroite. En flex, les
+   trois éléments restent côte à côte quelle que soit la largeur. */
+.bootstrap-touchspin {
+  display: inline-flex;
+  align-items: stretch;
+  float: none;
+}
+
+.bootstrap-touchspin input.form-control,
+.bootstrap-touchspin input.input-group {
+  float: none;
+  flex: 0 0 auto;
+}
+
+.bootstrap-touchspin .input-group-btn-vertical {
+  float: none;
+  display: flex;
+  flex-direction: column;
+  width: auto;
+}
+
+.bootstrap-touchspin .input-group-btn-vertical > .btn {
+  flex: 1 1 auto;
+}
+
+@media (max-width: 767px) {
+  /* Rangée mobile de l'en-tête du TUNNEL de commande (celui de la boutique
+     n'a plus d'en-tête sur mobile, voir section 29). Marge latérale : la
+     rangée Bootstrap a des marges négatives. */
+  #header .header-nav .mobile {
+    gap: .4rem;
+    padding: 0 15px;
+  }
+
+  #header .header-nav .mobile #_mobile_logo {
+    min-width: 0;
+  }
+
+  .atelier-logo {
+    min-width: 0;
+  }
+
+  .atelier-logo-mark {
+    flex: 0 0 auto;
+  }
+
+  /* Sur mobile, le logo se réduit à son pictogramme. Le nom est masqué
+     VISUELLEMENT seulement (même technique que .sr-only de Bootstrap) : le
+     SVG étant aria-hidden, c'est lui qui donne son nom au lien pour les
+     lecteurs d'écran. Le logo du pied de page garde son texte. */
+  #header .atelier-logo-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  #header .header-nav .mobile #_mobile_user_info,
+  #header .header-nav .mobile #_mobile_cart {
+    flex: 0 0 auto;
+  }
+
+  #header .header-nav .blockcart .cart-products-count {
+    font-size: .8125rem;
+  }
+
+  /* Panier : la ligne produit tient sur une rangée lisible. */
+  .cart-item .product-line-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: .75rem;
+    margin: 0;
+  }
+
+  .cart-item .product-line-grid-left {
+    flex: 0 0 80px;
+    width: 80px;
+    max-width: none;
+    padding: 0;
+  }
+
+  .cart-item .product-line-grid-body {
+    flex: 1 1 10rem;
+    width: auto;
+    max-width: none;
+    padding: 0;
+  }
+
+  .cart-item .product-line-grid-right {
+    flex: 1 1 100%;
+    width: auto;
+    max-width: none;
+    padding: 0;
+  }
+
+  .cart-item .product-line-grid-right > .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    margin: 0;
+  }
+
+  .cart-item .product-line-grid-right .col-xs-4.hidden-md-up {
+    display: none;
+  }
+
+  .cart-item .product-line-grid-right > .row > div {
+    width: auto;
+    max-width: none;
+    padding: 0;
+  }
+
+  .cart-item .product-line-grid-right .qty,
+  .cart-item .product-line-grid-right .price {
+    width: auto;
+    max-width: none;
+    padding: 0;
+  }
+
+  .cart-item .product-line-grid-right .row {
+    align-items: center;
+  }
+
+  /* Tunnel : la barre d'étapes reste verticale sous 768 px (la grille du
+     point 13 ne s'applique qu'au-delà), on l'aère simplement. */
+  body#checkout section.checkout-step .step-title {
+    font-size: 1.125rem;
+  }
+}
+
+/* Barre d'action d'une étape : « Précédent » à gauche, « Continuer » à droite.
+   Le conteneur est créé par assets/js/custom.js. */
+.atelier-step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .75rem;
+  margin-top: 1rem;
+}
+
+.atelier-step-actions .atelier-step-back {
+  margin-right: auto;
+}
+
+/* Classic fait flotter « Continuer » à droite : inutile dans un conteneur
+   flex, et le flottement sortirait le bouton de la barre. */
+.atelier-step-actions .continue {
+  float: none;
+}
+
+/* --------------------------------------------------------------------------
+   21. Ordre des sections de l'accueil
+   « Nos rayons » doit s'intercaler entre « Meilleures ventes » et
+   « Nouveaux produits ». Or ces deux blocs viennent du hook displayHome,
+   rendu d'un seul tenant dans {$HOOK_HOME} : impossible d'écrire quoi que ce
+   soit entre eux depuis le gabarit.
+   Comme toutes ces sections sont des FRÈRES dans #content, il suffit de
+   passer le conteneur en colonne flex et de les classer avec « order » — le
+   système de hooks reste intact, aucun module n'est déplacé.
+
+   ps_bestsellers et ps_newproducts produisent le MÊME balisage
+   (<section class="featured-products clearfix mt-3">) : on ne peut donc pas
+   les distinguer par leurs classes, d'où le :nth-of-type. L'ordre de rendu
+   est fixé par la position des modules sur le hook (bestsellers 1,
+   newproducts 2), réglable au back-office.
+     1 = bandeau · 2 = nos rayons · 3 = meilleures ventes · 4 = nouveautés
+   -------------------------------------------------------------------------- */
+#content.page-home {
+  display: flex;
+  flex-direction: column;
+}
+
+#content.page-home > * {
+  order: 5;
+}
+
+#content.page-home > .atelier-hero {
+  order: 1;
+}
+
+/* Les deux blocs sont désignés par leur RANG et non par leur position :
+   ps_bestsellers ne rend aucun balisage tant qu'aucune vente n'est
+   comptabilisée (ps_bestsellers.php:199-206). Sur une installation neuve,
+   l'accueil n'a donc que trois sections, et un :nth-of-type(3) désignerait
+   les nouveautés — qui passeraient avant « Nos rayons ».
+   « :last-of-type » vise toujours les nouveautés, qui ferment la liste ;
+   « .featured-products » attrape les meilleures ventes quand elles existent. */
+#content.page-home > .featured-products {
+  order: 2;
+}
+
+#content.page-home > .atelier-rayons {
+  order: 3;
+}
+
+#content.page-home > section.featured-products:last-of-type {
+  order: 4;
+}
+
+/* --------------------------------------------------------------------------
+   22. Espace client
+   La page « Mon compte » affichait des liens nus en majuscules ; on en fait
+   des cartes, comme le reste de la boutique.
+   -------------------------------------------------------------------------- */
+.page-my-account #content .links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.page-my-account #content .links a {
+  width: auto;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Classic écrit « a span.link-item » (élément compris) : il faut le même
+   sélecteur, sinon la règle est moins spécifique et ignorée. */
+.page-my-account #content .links a span.link-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  height: 100%;
+  padding: 1.5rem 1rem;
+  background: #ffffff;
+  border: 1px solid var(--atelier-border-card);
+  border-radius: var(--atelier-radius-card);
+  box-shadow: var(--atelier-shadow);
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: .9375rem;
+  text-align: center;
+  text-transform: none;
+  color: var(--atelier-dark);
+  transition: box-shadow .3s ease-out, transform .2s ease-out;
+}
+
+.page-my-account #content .links a:hover span.link-item {
+  box-shadow: var(--atelier-shadow-hover);
+  transform: translateY(-2px);
+  color: var(--atelier-dark);
+}
+
+/* Classic pose « padding-bottom: 3.4rem » sur cette icône pour réserver la
+   place du libellé. Avec box-sizing: border-box, ce rembourrage mange toute
+   la hauteur du rond et rejette le glyphe au-dessus : il faut le remettre
+   à zéro, sinon l'icône flotte hors de sa pastille. */
+.page-my-account #content .links a span.link-item i.material-icons {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  border-radius: 50%;
+  background: var(--atelier-soft);
+  color: var(--atelier-accent-hover);
+  font-size: 1.625rem;
+}
+
+/* --------------------------------------------------------------------------
+   23. Formulaires du compte, des adresses et du tunnel
+   -------------------------------------------------------------------------- */
+#main .form-control-label,
+#main .form-group > label,
+body#checkout .form-control-label {
+  text-align: left;
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: .875rem;
+  color: var(--atelier-dark);
+  padding-top: .6rem;
+}
+
+.form-control-comment,
+.form-informations {
+  font-size: .8125rem;
+  color: var(--atelier-text);
+}
+
+/* Bouton « Afficher » du champ mot de passe : il était gris foncé. */
+.input-group .input-group-btn > .btn,
+.js-visible-password,
+button[data-action="show-password"] {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 1rem;
+  background: var(--atelier-light);
+  border: 1px solid var(--atelier-grey);
+  border-left: 0;
+  border-radius: 0 var(--atelier-radius-field) var(--atelier-radius-field) 0;
+  color: var(--atelier-dark);
+  text-transform: none;
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: .8125rem;
+}
+
+.input-group .input-group-btn > .btn:hover,
+.js-visible-password:hover {
+  background: var(--atelier-grey);
+  color: var(--atelier-dark);
+}
+
+/* Le champ perd son arrondi à droite quand un bouton le prolonge. */
+.input-group .form-control:not(:last-child) {
+  border-radius: var(--atelier-radius-field) 0 0 var(--atelier-radius-field);
+}
+
+/* Cases à cocher : carré arrondi, coche sur fond accentué. */
+.custom-checkbox input[type="checkbox"] + span {
+  border-radius: 4px;
+  border-color: var(--atelier-grey);
+}
+
+.custom-checkbox input[type="checkbox"]:checked + span {
+  background: var(--atelier-accent);
+  border-color: var(--atelier-accent);
+}
+
+.custom-checkbox input[type="checkbox"] + span .checkbox-checked {
+  color: var(--atelier-dark);
+}
+
+.custom-checkbox label,
+.radio-inline {
+  text-align: left;
+  color: var(--atelier-text);
+}
+
+/* Le pied de formulaire aligne ses boutons à droite, comme les étapes. */
+.page-my-account .form-footer,
+#identity .form-footer,
+#address .form-footer,
+#authentication .form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+  margin-top: 1.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   24. Animations
+   Apparition en fondu au chargement, réactions au survol et au clic.
+   Tout est en CSS : aucun JavaScript, donc rien à charger ni à exécuter.
+   « animation-fill-mode: both » garantit que l'élément reste visible après
+   l'animation ; sans lui, un élément parti de opacity:0 pourrait y revenir.
+   -------------------------------------------------------------------------- */
+@keyframes atelier-apparition {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.atelier-hero-main,
+.atelier-promo,
+.atelier-rayon,
+.page-home .featured-products .js-product {
+  animation: atelier-apparition .5s ease-out both;
+}
+
+/* Décalage progressif : les éléments entrent l'un après l'autre. */
+.atelier-promo:nth-of-type(2) { animation-delay: .08s; }
+.atelier-promo:nth-of-type(3) { animation-delay: .16s; }
+
+.atelier-rayon:nth-child(1) { animation-delay: .05s; }
+.atelier-rayon:nth-child(2) { animation-delay: .12s; }
+.atelier-rayon:nth-child(3) { animation-delay: .19s; }
+.atelier-rayon:nth-child(4) { animation-delay: .26s; }
+
+.page-home .featured-products .js-product:nth-child(1) { animation-delay: .05s; }
+.page-home .featured-products .js-product:nth-child(2) { animation-delay: .1s; }
+.page-home .featured-products .js-product:nth-child(3) { animation-delay: .15s; }
+.page-home .featured-products .js-product:nth-child(4) { animation-delay: .2s; }
+.page-home .featured-products .js-product:nth-child(5) { animation-delay: .25s; }
+.page-home .featured-products .js-product:nth-child(6) { animation-delay: .3s; }
+.page-home .featured-products .js-product:nth-child(7) { animation-delay: .35s; }
+.page-home .featured-products .js-product:nth-child(8) { animation-delay: .4s; }
+
+/* Survol : la photo du produit respire légèrement dans son cadre. */
+.product-miniature .product-thumbnail img {
+  transition: transform .4s ease-out;
+}
+
+.product-miniature .thumbnail-container:hover .product-thumbnail img {
+  transform: scale(1.06);
+}
+
+.atelier-hero-img,
+.atelier-promo-img {
+  transition: transform .4s ease-out;
+}
+
+.atelier-promo:hover .atelier-promo-img,
+.atelier-hero-main:hover .atelier-hero-img {
+  transform: scale(1.05);
+}
+
+.atelier-rayon-icon {
+  transition: background-color .25s ease-out, transform .25s ease-out;
+}
+
+.atelier-rayon:hover .atelier-rayon-icon {
+  background: var(--atelier-accent);
+  color: var(--atelier-dark);
+  transform: scale(1.08);
+}
+
+.atelier-promo-link .material-icons {
+  transition: transform .25s ease-out;
+}
+
+.atelier-promo:hover .atelier-promo-link .material-icons {
+  transform: translateX(4px);
+}
+
+.wishlist-button-add {
+  transition: background-color .2s ease-out, transform .2s ease-out;
+}
+
+.wishlist-button-add:hover {
+  transform: scale(1.08);
+}
+
+/* Clic : un léger enfoncement confirme l'action. */
+.btn:active,
+.atelier-card-btn:active,
+.atelier-rayon:active,
+.atelier-pickup-link:active {
+  transform: translateY(1px);
+}
+
+/* Réglage système « réduire les animations » : on les coupe toutes.
+   C'est une demande d'accessibilité (troubles vestibulaires, migraines),
+   pas une préférence esthétique. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .product-miniature .thumbnail-container:hover .product-thumbnail img,
+  .atelier-promo:hover .atelier-promo-img,
+  .atelier-hero-main:hover .atelier-hero-img,
+  .atelier-rayon:hover .atelier-rayon-icon {
+    transform: none;
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   25. Derniers restes de Classic
+   -------------------------------------------------------------------------- */
+
+/* Trois sélecteurs gardaient le cyan #24b9d7 de Classic, dont un en plein
+   parcours Click & Collect (l'adresse choisie à l'étape 2). */
+body#checkout section.checkout-step .address-item.selected {
+  border-color: var(--atelier-accent);
+}
+
+.tabs .nav-tabs .nav-link.active {
+  color: var(--atelier-dark);
+  border-bottom-color: var(--atelier-accent);
+}
+
+.product-images > li.thumb-container .thumb.selected,
+.product-images > li.thumb-container .thumb:hover {
+  border-color: var(--atelier-accent);
+}
+
+/* La règle « .h1, .h2, .h3 » de la section 3 ne couvre pas les titres que
+   Classic met en majuscules via des sélecteurs d'ÉLÉMENT, sans classe. */
+.contact-form h3,
+.page-order-detail h3,
+.sitemap h2 {
+  text-transform: none;
+}
+
+/* Sélecteur devenu mort : la miniature produit utilise désormais aria-label
+   au lieu d'un libellé masqué. (Bloc .atelier-card-actions .sr-only retiré.) */
+
+/* Bouton « Précédent » seul, quand l'étape n'a pas de « Continuer »
+   (aucun transporteur disponible pour l'adresse du client). */
+.atelier-step-back-seul {
+  display: inline-flex;
+  margin-top: 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   26. Bannière des pages de catégorie
+   Pleine largeur, image de fond (couverture de la catégorie), fil d'Ariane
+   et titre posés dessus. Sans image : fond doux de la charte, texte sombre.
+   -------------------------------------------------------------------------- */
+
+/* Plus de carte englobante : la bannière EST la carte. */
+#js-product-list-header {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+/* Le fil d'Ariane de la page est repris DANS la bannière : on masque
+   l'original pour ne pas l'afficher deux fois. « :has() » limite le masquage
+   aux pages où la bannière existe : à partir de la page 2 d'une catégorie,
+   le gabarit ne la rend pas (comme Classic), et le fil d'origine doit alors
+   rester visible. */
+body#category:has(.atelier-category-hero) .breadcrumb {
+  display: none;
+}
+
+/* Sortie du conteneur : la bannière occupe toute la largeur de la fenêtre.
+   « margin-left: calc(50% - 50vw) » la recentre sur la fenêtre quel que soit
+   le conteneur parent ; #wrapper empêche le débordement horizontal que
+   100vw provoquerait en présence d'une barre de défilement.
+   « clip » plutôt que « hidden » : hidden ferait de #wrapper un conteneur de
+   défilement (overflow-y passerait à auto), ce qui casse position: sticky.
+   Limité aux catégories, seules pages qui ont la bannière. */
+body#category #wrapper {
+  overflow-x: clip;
+}
+
+/* Les catégories sont en pleine largeur (config/theme.yml), donc sans la
+   colonne des filtres (ps_facetedsearch). Le bouton « Filtrer » mobile de
+   Classic (catalog/_partials/products-top.tpl:38) n'aurait plus rien à
+   ouvrir : son script masquerait la page entière. On le retire. */
+body#category .filter-button {
+  display: none;
+}
+
+.atelier-category-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-bottom: 1.5rem;
+  min-height: 170px;
+  padding: 0;
+  overflow: hidden;
+  background: var(--atelier-soft);
+  background-size: cover;
+  background-position: center;
+  border-radius: 0;
+}
+
+.atelier-category-hero.has-image {
+  min-height: 300px;
+}
+
+/* Avec une image, un voile dégradé garantit la lisibilité du titre quelle
+   que soit la photo — c'est ce qui permet d'écrire en blanc sans risque. */
+.atelier-category-hero.has-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(34, 34, 34, .82) 0%, rgba(34, 34, 34, .35) 55%, rgba(34, 34, 34, .12) 100%);
+}
+
+/* Le contenu reste aligné sur la grille du reste de la page. */
+.atelier-category-hero-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1170px;
+  margin: 0 auto;
+  padding: 2rem 15px;
+}
+
+.atelier-category-breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  margin: 0 0 .5rem;
+  padding: 0;
+  list-style: none;
+  font-size: .875rem;
+}
+
+.atelier-category-breadcrumb li + li::before {
+  content: "/";
+  margin-right: .35rem;
+  opacity: .6;
+}
+
+.atelier-category-breadcrumb a,
+.atelier-category-breadcrumb span {
+  color: var(--atelier-text);
+}
+
+.atelier-category-breadcrumb a:hover {
+  color: var(--atelier-accent-hover);
+}
+
+.atelier-category-title {
+  margin: 0;
+  font-size: 2.5rem;
+  line-height: 1.1;
+  color: var(--atelier-dark);
+}
+
+.atelier-category-desc {
+  margin: .5rem 0 0;
+  max-width: 48rem;
+  color: var(--atelier-text);
+}
+
+.atelier-category-desc p:last-child {
+  margin-bottom: 0;
+}
+
+.atelier-category-hero.has-image .atelier-category-title,
+.atelier-category-hero.has-image .atelier-category-desc,
+.atelier-category-hero.has-image .atelier-category-desc p,
+.atelier-category-hero.has-image .atelier-category-breadcrumb a,
+.atelier-category-hero.has-image .atelier-category-breadcrumb span {
+  color: #ffffff;
+}
+
+.atelier-category-hero.has-image .atelier-category-breadcrumb a:hover {
+  color: var(--atelier-accent);
+}
+
+/* Classic réservait 220 px pour une couverture affichée à côté du texte. */
+.block-category {
+  min-height: 0;
+}
+
+@media (max-width: 767px) {
+  .atelier-category-hero {
+    min-height: 130px;
+  }
+
+  .atelier-category-hero.has-image {
+    min-height: 200px;
+  }
+
+  .atelier-category-hero-inner {
+    padding: 1.25rem 15px;
+  }
+
+  .atelier-category-title {
+    font-size: 1.625rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   27. Tuiles de sous-catégories
+   Classic rend un conteneur d'image VIDE quand la catégorie n'a pas de
+   couverture, d'où les rectangles blancs. On en fait des cartes, avec un
+   aplat et un pictogramme là où l'image manque.
+   -------------------------------------------------------------------------- */
+#subcategories {
+  padding: 1.25rem;
+}
+
+#subcategories .subcategory-heading {
+  margin: 0 0 1rem;
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--atelier-dark);
+  text-transform: none;
+}
+
+#subcategories .subcategories-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#subcategories .subcategories-list li {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+#subcategories .subcategory-image {
+  margin: 0 0 .6rem;
+}
+
+#subcategories ul li .subcategory-image a.img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--atelier-soft);
+  border: 0;
+  border-radius: var(--atelier-radius-thumb);
+}
+
+#subcategories ul li .subcategory-image a.img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Pictogramme de remplacement, affiché seulement si le lien ne contient
+   aucune image. La police Material Icons est déjà chargée par Classic. */
+#subcategories ul li .subcategory-image a.img:not(:has(img))::after {
+  content: "storefront";
+  font-family: 'Material Icons';
+  font-size: 2rem;
+  font-weight: normal;
+  color: var(--atelier-accent);
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+}
+
+/* Classic écrit « #subcategories ul li .subcategory-name » : il faut le même
+   niveau de spécificité pour annuler ses majuscules. */
+#subcategories ul li .subcategory-name {
+  font-family: var(--atelier-font-title);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--atelier-dark);
+  text-transform: none;
+}
+
+#subcategories ul li .subcategory-name:hover {
+  color: var(--atelier-accent-hover);
+}
+
+/* Et une bordure cyan de 5 px au survol de la tuile, qui déformait la
+   vignette en réduisant son rembourrage. */
+#subcategories ul li:hover .subcategory-image a {
+  padding: 0;
+  border: 0;
+  box-shadow: var(--atelier-shadow-hover);
+}
+
+#subcategories .cat_desc {
+  font-size: .8125rem;
+  color: var(--atelier-text);
+}
+
+/* --------------------------------------------------------------------------
+   28. Pied de page en colonnes
+   Première colonne : identité de la boutique (ajoutée par notre surcharge de
+   footer.tpl) ; les suivantes viennent des modules. Classic leur impose des
+   largeurs Bootstrap hétérogènes (col-md-6, col-md-3…) ; la grille les ignore
+   et répartit les colonnes à égalité, l'identité recevant un peu plus de place.
+   -------------------------------------------------------------------------- */
+@media (min-width: 768px) {
+  /* La rangée n'a que QUATRE enfants directs : notre colonne d'identité,
+     puis ps_linklist — qui groupe ses DEUX listes dans une seule cellule —,
+     ps_customeraccountlinks et ps_contactinfo. D'où quatre pistes, celle de
+     ps_linklist doublée, et une sous-grille à l'intérieur pour ses deux
+     listes. Réserver cinq pistes laissait une colonne vide et serrait tout. */
+  .footer-container .container > .row:first-child {
+    display: grid;
+    grid-template-columns: 1.5fr 2fr 1fr 1.3fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .footer-container .container > .row:first-child > * {
+    width: auto;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-container .container > .row:first-child > .links > .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 0;
+  }
+
+  .footer-container .container > .row:first-child > .links > .row > * {
+    width: auto;
+    max-width: none;
+    padding: 0;
+  }
+}
+
+.atelier-footer-brand .atelier-logo-wrapper {
+  margin-bottom: .75rem;
+}
+
+.atelier-footer-baseline {
+  margin: 0 0 1rem;
+  max-width: 22rem;
+  font-size: .875rem;
+  line-height: 1.6;
+  color: var(--atelier-text);
+}
+
+.atelier-footer-pickup {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .45rem 1rem;
+  background: var(--atelier-soft);
+  border-radius: 999px;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--atelier-dark);
+}
+
+.atelier-footer-pickup:hover {
+  background: var(--atelier-accent);
+  color: var(--atelier-dark);
+}
+
+.atelier-footer-pickup .material-icons {
+  font-size: 1.125rem;
+}
+
+/* Barre du bas : séparée des colonnes, le crédit sur sa propre ligne. */
+.footer-container .container > .row:last-child {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e9e9e9;
+}
+
+.footer-container .container > .row:last-child p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: .25rem 1rem;
+  margin: 0;
+  font-size: .8125rem;
+}
+
+.atelier-credit {
+  padding: 0;
+  color: var(--atelier-text);
+}
+
+@media (max-width: 767px) {
+  .atelier-footer-baseline {
+    max-width: none;
+  }
+
+  /* Le pied de page touchait les bords : les rangées Bootstrap (marges
+     négatives de 15 px) annulent la marge du conteneur. On la double, et
+     les titres repliables s'alignent sur le bloc d'identité. */
+  .footer-container .container {
+    padding-right: 30px;
+    padding-left: 30px;
+  }
+
+  .footer-container .title {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   29. Barre de navigation mobile (en bas de l'écran)
+   Sur mobile, l'en-tête ne garde que le logo et la recherche : la barre
+   porte la navigation. Accueil, Boutique et Retrait viennent du gabarit ;
+   le compte et le panier sont ceux des modules, déplacés ici par le JS de
+   Classic.
+   Icônes seules : les libellés sont portés par « title » et « aria-label ».
+   -------------------------------------------------------------------------- */
+.atelier-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .atelier-bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: stretch;
+    background: #ffffff;
+    border-top: 1px solid var(--atelier-grey);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, .06);
+    /* Écrans à encoche : la barre ne passe pas sous la barre système. */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* La barre est fixe : on réserve sa hauteur en bas de page pour que le
+     pied de page ne soit pas caché dessous. */
+  body:has(.atelier-bottom-nav) {
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+
+  /* Les cinq cases se partagent la largeur. */
+  .atelier-bottom-nav > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .atelier-bottom-nav-link,
+  .atelier-bottom-nav .user-info > a.atelier-account,
+  .atelier-bottom-nav .blockcart .header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 3.5rem;
+    color: var(--atelier-text);
+    cursor: pointer;
+  }
+
+  .atelier-bottom-nav .material-icons {
+    font-size: 1.625rem;
+    color: inherit;
+  }
+
+  .atelier-bottom-nav-link.current,
+  .atelier-bottom-nav a:hover {
+    color: var(--atelier-dark);
+  }
+
+  .atelier-bottom-nav-link.current .material-icons {
+    color: var(--atelier-accent-hover);
+  }
+
+  /* Compte : la déconnexion reste dans « Mon compte ». Le libellé
+     (« Connexion » ou le nom du client) est déjà masqué par Classic
+     sur mobile (hidden-sm-down). */
+  .atelier-bottom-nav .user-info .atelier-logout {
+    display: none;
+  }
+
+  /* Panier : quand il n'est pas vide, le module enveloppe son contenu dans
+     un lien, qui doit occuper toute la case. */
+  .atelier-bottom-nav .blockcart,
+  .atelier-bottom-nav .cart-preview.active {
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .atelier-bottom-nav .blockcart .header > a {
+    display: contents;
+    color: inherit;
+  }
+
+  /* Le nombre d'articles devient une pastille sur l'icône. */
+  .atelier-bottom-nav .blockcart .cart-products-count {
+    position: absolute;
+    top: .55rem;
+    left: calc(50% + .45rem);
+    font-size: .625rem;
+    font-weight: 700;
+    color: var(--atelier-dark);
+  }
+
+  .atelier-bottom-nav .blockcart.active .shopping-cart {
+    color: var(--atelier-accent-hover);
+  }
+}
+
+/* En-tête mobile : pictogramme du logo et recherche sur une seule ligne.
+   Tout le reste de la rangée est hidden-sm-down (menu, compte, panier,
+   lien Retrait), la grille de la version ordinateur n'a donc pas lieu
+   d'être ici. */
+@media (max-width: 767px) {
+  .atelier-header-row {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .5rem 0;
+  }
+
+  .atelier-header-row > #_desktop_logo {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 0;
+  }
+
+  .atelier-header-row #search_widget {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    float: none;
+  }
+}

@@ -1,0 +1,193 @@
+# Thème enfant « atelier » de L'Atelier des Saveurs.
+#
+# Attention : le cœur fusionne ce fichier avec celui du parent par un
+# array_merge de PREMIER NIVEAU (src/Core/Addon/Theme/Theme.php:61).
+# Une clé écrite ici REMPLACE donc toute la clé du parent ; une clé absente
+# est héritée telle quelle. D'où les deux règles ci-dessous :
+#  - « global_settings » est au contraire REDÉFINI EN ENTIER, y compris les
+#    parties identiques à Classic. L'omettre revenait à hériter de la liste
+#    de Classic, que « prestashop:theme:enable » REJOUE à chaque activation
+#    (ThemeManager::enable -> doHookModules, ThemeManager.php:258) : les
+#    blocs de démonstration revenaient donc sur l'accueil à chaque
+#    installation suivie depuis le README.
+#  - « meta » et « theme_settings » sont réécrits EN ENTIER, y compris les
+#    parties inchangées, car la fusion ne descend pas dans les sous-clés.
+
+name: atelier
+display_name: Atelier des Saveurs
+version: 1.0.0
+parent: classic
+
+author:
+  name: "Sarobidy"
+  email: "sarobidy.rajaofetra@nuklear.io"
+  url: "http://localhost:8080"
+
+assets:
+  # Charge theme.css et theme.js de Classic (Bootstrap 4, Material Icons,
+  # JS du menu mobile). Notre assets/css/custom.css est ajouté par-dessus
+  # automatiquement par le cœur (FrontController.php:980, priorité 1000).
+  use_parent_assets: true
+
+meta:
+  compatibility:
+    from: 8.2.1
+    to: ~
+
+  # Recopiés de Classic : le validateur exige meta.available_layouts
+  # (src/Core/Addon/Theme/ThemeValidator.php:88).
+  available_layouts:
+    layout-full-width:
+      name: Pleine largeur
+      description: Aucune colonne latérale, idéal pour les pages sans distraction comme les fiches produit.
+    layout-both-columns:
+      name: Trois colonnes
+      description: Une grande colonne centrale et 2 colonnes latérales.
+    layout-left-column:
+      name: Deux colonnes, petite colonne à gauche
+      description: Deux colonnes avec une petite colonne à gauche.
+    layout-right-column:
+      name: Deux colonnes, petite colonne à droite
+      description: Deux colonnes avec une petite colonne à droite.
+
+# Affectation des modules aux hooks, rejouée à chaque activation du thème.
+#
+# Attention au mécanisme : tout hook listé ici est d'abord VIDÉ puis
+# reconstruit à partir de cette liste (HookConfigurator.php:75 et
+# HookRepository::persistHooksConfiguration:147), et tout module cité ici est
+# retiré de TOUS ses hooks actuels avant d'être replacé (HookConfigurator.php:62-68).
+# Un hook absent de cette liste, lui, n'est pas touché : c'est ce qui préserve
+# les hooks du module nk_clickcollect.
+#
+# D'où la recopie fidèle de la liste de Classic, avec un seul écart :
+# displayHome ne contient plus que les meilleures ventes et les nouveautés.
+# ps_imageslider, ps_featuredproducts (« Produits populaires »), ps_banner,
+# ps_customtext et ps_specials (« Promotions ») en disparaissent donc, sans
+# être désinstallés pour autant.
+global_settings:
+  configuration:
+    PS_IMAGE_QUALITY: png
+
+  modules:
+    to_enable:
+      - ps_linklist
+
+  hooks:
+    modules_to_hook:
+      displayAfterBodyOpeningTag:
+        - blockreassurance
+      displayNavFullWidth:
+        - blockreassurance
+      displayAdminCustomers:
+        - blockwishlist
+      displayCustomerAccount:
+        - blockwishlist
+        - psgdpr
+      displayMyAccountBlock:
+        - blockwishlist
+      displayNav1:
+        - ps_contactinfo
+      displayNav2:
+        - ps_languageselector
+        - ps_currencyselector
+        - ps_customersignin
+        - ps_shoppingcart
+      displayTop:
+        - ps_mainmenu
+        - ps_searchbar
+      # Seul écart avec Classic : ni carrousel, ni bannière, ni bloc de texte
+      # de démonstration, ni « Produits populaires », ni « Promotions ».
+      # L'ordre fixe la position d'affichage (meilleures ventes d'abord,
+      # inverse de Classic).
+      displayHome:
+        - ps_bestsellers
+        - ps_newproducts
+      displayFooterBefore:
+        - ps_emailsubscription
+        - ps_socialfollow
+        - blockreassurance
+      displayFooter:
+        - ps_linklist
+        - ps_customeraccountlinks
+        - ps_contactinfo
+        - blockwishlist
+      displayFooterAfter:
+        - blockreassurance
+      displayFooterProduct:
+        - productcomments
+      displayLeftColumn:
+        - ps_categorytree
+        - ps_facetedsearch
+      displayContactLeftColumn:
+        - ps_contactinfo
+      displayContactRightColumn:
+        - ps_contactinfo
+      displayContactContent:
+        - contactform
+      displaySearch:
+        - ps_searchbar
+      displayProductAdditionalInfo:
+        - ps_sharebuttons
+        - productcomments
+      displayProductListReviews:
+        - productcomments
+      displayReassurance:
+        - blockreassurance
+      displayOrderConfirmation2:
+        - ps_featuredproducts
+      displayProductActions:
+        - blockwishlist
+
+  # Recopiés de Classic : ThemeValidator exige global_settings.image_types
+  # (src/Core/Addon/Theme/ThemeValidator.php:90-95).
+  image_types:
+    cart_default:
+      width: 125
+      height: 125
+      scope: [ products ]
+    small_default:
+      width: 98
+      height: 98
+      scope: [ products, categories, manufacturers, suppliers ]
+    medium_default:
+      width: 452
+      height: 452
+      scope: [ products, manufacturers, suppliers ]
+    home_default:
+      width: 250
+      height: 250
+      scope: [ products ]
+    large_default:
+      width: 800
+      height: 800
+      scope: [ products, manufacturers, suppliers ]
+    category_default:
+      width: 141
+      height: 180
+      scope: [ categories ]
+    stores_default:
+      width: 170
+      height: 115
+      scope: [ stores ]
+
+  new_password_policy_feature: true
+
+theme_settings:
+  default_layout: layout-full-width
+
+  # Classic met ces pages en layout-left-column, ce qui y affiche la colonne
+  # displayLeftColumn : arbre de catégories et filtres (ps_facetedsearch).
+  # Le design visé est pleine largeur : on les repasse en layout-full-width.
+  # Le bouton « Filtrer » mobile, devenu sans objet, est masqué dans
+  # custom.css (section 26).
+  #
+  # Contact garde le layout-left-column de Classic : sa colonne n'est PAS
+  # displayLeftColumn mais displayContactLeftColumn (contact.tpl:29-41),
+  # qui porte les coordonnées de la boutique (ps_contactinfo) — utiles au
+  # client qui vient retirer sa commande.
+  layouts:
+    category: layout-full-width
+    best-sales: layout-full-width
+    new-products: layout-full-width
+    prices-drop: layout-full-width
+    contact: layout-left-column

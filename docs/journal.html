@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journal de bord</title>
+<script>document.documentElement.classList.add('js');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --desk: #d8cdbd;
+    --paper: #fbf7ee;
+    --ink: #2c2a35;
+    --ink-soft: #66606e;
+    --red: #c2412d;
+    --margin: rgba(214, 92, 92, .45);
+    --dot: rgba(60, 60, 90, .17);
+    --pink: rgba(223, 25, 149, .30);
+    --blue: rgba(124, 203, 232, .55);
+    --postit: #fff2a0;
+    --shadow: 0 1px 2px rgba(0,0,0,.08), 0 10px 30px rgba(60,40,20,.18);
+    --hand: "Caveat", "Segoe Print", cursive;
+    --note: "Patrick Hand", "Segoe Print", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --desk: #2a2420;
+      --paper: #efe6d3;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 40px rgba(0,0,0,.55);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--desk); color: var(--ink);
+    font: 18px/1.6 var(--note);
+  }
+
+  /* --- Le carnet : une pile de pages --- */
+  .book { max-width: 900px; margin: 32px auto 0; display: grid; gap: 28px; }
+
+  /* --- Une page : papier pointillé, marge rouge, trous de reliure, numéro --- */
+  /* Trous et marge sont attachés à la feuille (scroll), les points suivent le texte (local) quand il défile. */
+  .page {
+    position: relative; padding: 44px 44px 0 92px;
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 29px 22px, var(--desk) 7px, rgba(0,0,0,.12) 8px, transparent 9px),
+      linear-gradient(90deg, transparent 70px, var(--margin) 70px, var(--margin) 72px, transparent 72px),
+      radial-gradient(var(--dot) 1.1px, transparent 1.4px);
+    background-size: 58px 44px, 100% 100%, 22px 22px;
+    background-repeat: repeat-y, no-repeat, repeat;
+    background-position: 0 2px, 0 0, 0 0;
+    background-attachment: scroll, scroll, local;
+    border-radius: 4px 10px 10px 4px; box-shadow: var(--shadow);
+  }
+  /* Numéro de page : dernier élément de la feuille, poussé tout en bas (margin-top: auto). */
+  .page::after {
+    content: "— " attr(data-num) " —"; display: block; flex-shrink: 0;
+    margin: auto -24px 0 auto; padding: 24px 0 16px;
+    font: 700 1.3rem var(--hand); color: var(--ink-soft);
+  }
+
+  /* --- Avec JavaScript : une seule page visible, empilée au même endroit --- */
+  .js .book { gap: 0; }
+  /* Toutes les pages ont la même hauteur (l'écran moins la barre du bas) ; le surplus défile dans la feuille. */
+  .js .page {
+    display: none; grid-area: 1 / 1; backface-visibility: hidden;
+    height: max(480px, calc(100vh - 110px)); height: max(480px, calc(100dvh - 110px));
+    overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ink-soft) transparent;
+  }
+  .js .page.current { display: flex; flex-direction: column; }
+  .js .page > * { flex-shrink: 0; }
+  .js .page > .tape { align-self: flex-start; }
+  .page.out, .page.in { z-index: 2; transform-origin: left center; box-shadow: -12px 0 40px rgba(0,0,0,.28); }
+  .page.out { animation: page-out .6s ease-in forwards; }
+  .page.in { animation: page-in .6s ease-out; }
+  @keyframes page-out { to { transform: perspective(2400px) rotateY(-100deg); } }
+  @keyframes page-in { from { transform: perspective(2400px) rotateY(-100deg); } }
+
+  h1, h2, h3, .hand { font-family: var(--hand); font-weight: 700; }
+  code {
+    font: .78em ui-monospace, Menlo, Consolas, monospace; background: rgba(44,42,53,.06);
+    border-radius: 3px; padding: 1px 4px; overflow-wrap: anywhere;
+  }
+  .js-only { display: none; }
+  .js .js-only { display: block; }
+
+  /* --- Couverture --- */
+  .cover { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .cover::after { align-self: flex-end; margin-top: 0; }
+  .cover > :first-child { margin-top: auto; }
+  .cover > .js-only { margin-bottom: auto; }
+  .sticker {
+    width: 150px; height: 150px; border-radius: 50%; border: 6px solid #fff; background: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,.25); transform: rotate(-8deg);
+  }
+  .cover h1 { margin: 28px 0 0; font-size: 4.4rem; line-height: 1; }
+  .hl { background: linear-gradient(transparent 55%, var(--blue) 55%, var(--blue) 90%, transparent 90%); }
+  .cover .sub { margin: 12px 0 0; color: var(--ink-soft); font-size: 1.1rem; }
+  .cover .legend { margin: 28px auto 0; max-width: 520px; font-size: .95rem; color: var(--ink-soft); }
+  .toc { margin: 18px 0 0; padding: 0; list-style: none; font: 700 1.5rem/1.7 var(--hand); }
+  .toc a { color: var(--ink); text-decoration: none; border-bottom: 2px dashed var(--ink-soft); }
+  .hint { margin: 22px 0 0; font-size: .9rem; color: var(--ink-soft); }
+
+  /* --- Titres : ruban adhésif --- */
+  .tape {
+    display: inline-block; margin: 0 0 22px; padding: 2px 22px; font-size: 2.2rem;
+    background: var(--pink); transform: rotate(-1.5deg);
+    clip-path: polygon(2% 0, 98% 4%, 100% 96%, 0 100%);
+  }
+  .tape.blue { background: var(--blue); transform: rotate(-1deg); clip-path: polygon(0 6%, 100% 0, 98% 100%, 3% 94%); }
+
+  /* --- Feuille de route --- */
+  .progress { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .bar { flex: 1; height: 18px; border: 2px solid var(--ink); border-radius: 9px 7px 10px 6px; overflow: hidden; }
+  .bar span {
+    display: block; height: 100%; width: 0;
+    background: repeating-linear-gradient(-45deg, var(--ink) 0 2px, transparent 2px 6px);
+  }
+  .progress .hand { font-size: 1.5rem; white-space: nowrap; }
+  .phases { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 30px 34px; }
+  .phase h3 { margin: 0; font-size: 1.6rem; line-height: 1.2; }
+  .phase .meta { margin: 0 0 8px; font-size: .9rem; color: var(--ink-soft); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .stamp {
+    font: 700 .72rem/1 system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase;
+    border: 2px solid currentColor; border-radius: 4px; padding: 3px 6px; transform: rotate(-4deg);
+  }
+  .stamp.todo { color: var(--ink-soft); }
+  .stamp.doing { color: #b07a10; }
+  .stamp.done { color: var(--red); }
+  .tasks { list-style: none; margin: 0; padding: 0; }
+  .task { position: relative; padding: 2px 0 2px 32px; }
+  .task::before {
+    content: ""; position: absolute; left: 4px; top: 8px; width: 15px; height: 15px;
+    border: 2px solid var(--ink); border-radius: 3px 2px 4px 2px; transform: rotate(-2deg);
+  }
+  .task.done { color: var(--ink-soft); }
+  .task.done::after {
+    content: "✓"; position: absolute; left: 4px; top: -1px; font: 700 1.7rem/1 var(--hand); color: var(--red);
+  }
+  .proof { font-size: .8rem; }
+  .optional { font-size: .9rem; color: var(--ink-soft); font-style: italic; }
+
+  /* --- Pages du journal --- */
+  .day > .meta { margin: 0 0 10px; color: var(--ink-soft); font-size: .95rem; }
+  .day h4 { margin: 16px 0 4px; font: 700 1.45rem/1.2 var(--hand); color: var(--red); }
+  .day ul { margin: 0; padding-left: 22px; }
+  .day li { margin: 2px 0; }
+  .postit {
+    margin: 18px 0 6px; padding: 6px 20px 14px; background: var(--postit); color: #2c2a35;
+    box-shadow: 0 6px 14px rgba(0,0,0,.14); transform: rotate(-.6deg); max-width: 640px;
+  }
+  .postit h4 { margin-top: 6px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+  .avis { border-left: 3px solid var(--blue); padding-left: 14px; }
+  .err { color: var(--red); font-weight: 700; }
+  .ok { color: #2f6b3a; font-weight: 700; }
+  .todo-text { color: var(--ink-soft); font-style: italic; }
+  .todo-text::before { content: "✎ "; }
+
+  /* --- Barre pour tourner les pages (collée en bas de l'écran) --- */
+  .pager {
+    display: none; position: sticky; bottom: 0; z-index: 5; max-width: 900px; margin: 0 auto;
+    padding: 14px 0 18px; align-items: center; justify-content: space-between; gap: 12px;
+    background: linear-gradient(transparent, var(--desk) 35%);
+  }
+  .js .pager { display: flex; }
+  .pager button, .pager select {
+    font: 700 1.25rem var(--hand); color: var(--ink); background: var(--paper);
+    border: 2px solid var(--ink); border-radius: 8px 6px 9px 5px; padding: 2px 14px; cursor: pointer;
+  }
+  .pager button:disabled { opacity: .35; cursor: default; }
+  .pager .middle { display: flex; align-items: center; gap: 10px; color: var(--ink); font: 700 1.25rem var(--hand); }
+  @media (prefers-color-scheme: dark) { .pager .middle { color: var(--paper); } }
+
+  @media (max-width: 640px) {
+    body { font-size: 17px; }
+    .book { margin: 0; }
+    .page { border-radius: 0; padding: 28px 16px 0 44px;
+      background-image:
+        linear-gradient(90deg, transparent 30px, var(--margin) 30px, var(--margin) 32px, transparent 32px),
+        radial-gradient(var(--dot) 1.1px, transparent 1.4px);
+      background-size: 100% 100%, 22px 22px; background-repeat: no-repeat, repeat;
+      background-position: 0 0, 0 0; background-attachment: scroll, local; }
+    .js .page { height: calc(100vh - 64px); height: calc(100dvh - 64px); }
+    .page::after { margin-right: 0; }
+
+    .cover h1 { font-size: 3.2rem; }
+    .sticker { width: 120px; height: 120px; }
+    .phases, .cols { grid-template-columns: 1fr; }
+    .pager { padding: 10px 12px 14px; }
+    .pager .label { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .page.out, .page.in { animation: none; } }
+  @media print {
+    body { background: #fff; }
+    .js .page, .js .page.current { display: block; height: auto; overflow: visible; }
+    .page { box-shadow: none; break-after: page; }
+    .pager { display: none; }
+    .phase { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<main class="book" id="book">
+
+  <!-- ===================== PAGE 1 : COUVERTURE ===================== -->
+  <section class="page cover" id="couverture" data-title="Couverture">
+    <img class="sticker" src="img/prestashop-logo.png" alt="Logo PrestaShop">
+    <h1><span class="hl">Journal de bord</span></h1>
+    <p class="sub">L'Atelier des Saveurs · PrestaShop 8.2 · module <code>nk_clickcollect</code><br>tenu par Sarobidy</p>
+    <p class="legend">Une page par jour : Fait (avec preuve) · Erreurs &amp; résolutions · Blocages · Prochaine étape · Avis.
+      <span class="todo-text">En italique</span> : à compléter par Sarobidy.</p>
+    <div class="js-only">
+      <ol class="toc" id="toc"></ol>
+      <p class="hint">Tourner les pages : boutons ‹ ›, flèches ← → du clavier, ou glisser le doigt.</p>
+    </div>
+  </section>
+
+  <!-- ===================== PAGE 2 : FEUILLE DE ROUTE =====================
+       Cocher une tâche = ajouter la classe "done" au <li class="task"> et la preuve (commit, test).
+       La barre de progression et les tampons se calculent tout seuls. -->
+  <section class="page" id="feuille-de-route" data-title="Feuille de route">
+    <h2 class="tape">Feuille de route</h2>
+
+    <div class="progress">
+      <div class="bar"><span id="bar-fill"></span></div>
+      <span class="hand" id="bar-label">—</span>
+    </div>
+
+    <div class="phases">
+
+      <section class="phase">
+        <h3>A · Boutique</h3>
+        <p class="meta"><span>Partie A du cahier des charges</span></p>
+        <ul class="tasks">
+          <li class="task done">Instance PrestaShop 8.2 sous Docker <code class="proof">9af9356</code> <code class="proof">436c760</code></li>
+          <li class="task done">Catalogue : 2 catégories, 8 produits <code class="proof">ffa8284</code></li>
+          <li class="task done">3 produits à déclinaisons <code class="proof">d345a30</code></li>
+          <li class="task done">Procédure de relance pour un tiers (README) <code class="proof">ffa8284</code></li>
+          <li class="task done">Thème enfant <code>atelier</code> (Classic intact) <code class="proof">4240a3f</code></li>
+          <li class="task done">Accueil, header, footer, navigation, réassurance <code class="proof">276910c</code></li>
+          <li class="task done">Fiches produits et catégories responsive <code class="proof">4240a3f</code></li>
+          <li class="task done">Panier + commande complète en mode test <code class="proof">4240a3f</code></li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>1 · Squelette du module</h3>
+        <p class="meta"><code>feature/module-skeleton</code></p>
+        <ul class="tasks">
+          <li class="task done">Classe <code>Nk_Clickcollect</code> : <code>install()</code> / <code>uninstall()</code> <code class="proof">eec3a5b</code></li>
+          <li class="task done"><code>index.php</code> dans chaque dossier + <code>logo.png</code> <code class="proof">eec3a5b</code></li>
+          <li class="task done">Tables <code>slot</code> et <code>booking</code> (<code>sql/install.php</code>, <code>uninstall.php</code>) <code class="proof">eec3a5b</code></li>
+          <li class="task done">Transporteur « Retrait en boutique » + <code>id_reference</code> en configuration <code class="proof">eec3a5b</code></li>
+          <li class="task done">Onglet admin « Click &amp; Collect » sous Commandes <code class="proof">eec3a5b</code></li>
+          <li class="task done"><code>tests/lint.sh</code> et <code>tests/reinstall.sh</code> <code class="proof">eec3a5b</code></li>
+          <li class="task done">Install → uninstall → réinstall sans erreur <code class="proof">eec3a5b</code></li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>2 · Créneaux en admin</h3>
+        <p class="meta"><code>feature/admin-slots</code></p>
+        <ul class="tasks">
+          <li class="task done">ObjectModel <code>NkClickCollectSlot</code> <code class="proof">99f9226</code></li>
+          <li class="task done">Liste des créneaux (HelperList) <code class="proof">99f9226</code></li>
+          <li class="task done">Création / modification (HelperForm) <code class="proof">99f9226</code></li>
+          <li class="task done">Validations : date non passée, fin &gt; début <code class="proof">99f9226</code></li>
+          <li class="task done">Suppression ; créneau réservé → désactivé <code class="proof">99f9226</code></li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>3 · Créneau au checkout</h3>
+        <p class="meta"><code>feature/checkout-slot</code></p>
+        <ul class="tasks">
+          <li class="task done"><code>displayCarrierExtraContent</code> : créneaux sous le transporteur <code class="proof">a0084a2</code></li>
+          <li class="task done">Template <code>checkout_slots.tpl</code> (sorties échappées) <code class="proof">a0084a2</code></li>
+          <li class="task done"><code>actionValidateStepComplete</code> : créneau obligatoire, actif, futur <code class="proof">a0084a2</code></li>
+          <li class="task done">Réservation liée au panier (<code>NkClickCollectBooking</code>) <code class="proof">a0084a2</code></li>
+          <li class="task done">Messages d'erreur traduisibles <code class="proof">a0084a2</code></li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>4 · Créneau sur la commande</h3>
+        <p class="meta"><code>feature/order-slot</code></p>
+        <ul class="tasks">
+          <li class="task done"><code>actionValidateOrder</code> : réservation rattachée à la commande <code class="proof">d6d7fb9</code></li>
+          <li class="task done"><code>displayOrderConfirmation</code> : rappel au client <code class="proof">d6d7fb9</code></li>
+          <li class="task done"><code>displayAdminOrderMain</code> : créneau dans la fiche commande <code class="proof">d6d7fb9</code></li>
+          <li class="task done"><code>actionCarrierUpdate</code> : référence transporteur cohérente <code class="proof">d6d7fb9</code></li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>5 · Tests &amp; documentation</h3>
+        <p class="meta"><code>docs/tests-readme</code></p>
+        <ul class="tasks">
+          <li class="task done"><code>tests/TESTS.md</code> : scénarios manuels <code class="proof">b825e57</code></li>
+          <li class="task done">Créneaux de démo (<code>sql/demo.php</code>) <code class="proof">b825e57</code></li>
+          <li class="task done">README : installation, prérequis, lancement, choix techniques, tests <code class="proof">b825e57</code></li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>6 · Bonus</h3>
+        <p class="meta"><span class="optional">seulement si 1 à 5 sont stables</span></p>
+        <ul class="tasks">
+          <li class="task">Places limitées par créneau</li>
+          <li class="task">Disponibilités actualisées en AJAX</li>
+          <li class="task">Créneaux complets non réservables</li>
+        </ul>
+      </section>
+
+      <section class="phase">
+        <h3>Livrables de restitution</h3>
+        <p class="meta"><span>Section 3 du cahier des charges</span></p>
+        <ul class="tasks">
+          <li class="task">Dépôt Git propre + PR <code>develop</code> → <code>main</code></li>
+          <li class="task done">Données de démo et configuration non sensible <code class="proof">ffa8284</code></li>
+          <li class="task">Vidéo de démo 5–10 min (ou démo live)</li>
+          <li class="task">Bilan personnel</li>
+        </ul>
+      </section>
+
+    </div>
+  </section>
+
+  <!-- ===================== PAGES DU JOURNAL : une par jour, la plus ancienne d'abord =====================
+  Modèle : copier ce bloc À LA FIN du carnet (data-date au format AAAA-MM-JJ : sert d'ancre #AAAA-MM-JJ et au sommaire).
+  <article class="page day" data-date="AAAA-MM-JJ">
+    <h2 class="tape blue">JJ/MM/AAAA</h2>
+    <p class="meta">Branche : <code>feature/...</code></p>
+    <h4>Fait</h4>
+    <ul><li>... (preuve : commit <code>abc1234</code> / test)</li></ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions</h4>
+      <ul><li><span class="err">Erreur :</span> message exact<br>
+        Cause : ...<br><span class="ok">Résolution :</span> ... (source : URL doc ou fichier:ligne)</li></ul>
+    </div>
+    <div class="cols">
+      <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>...</li></ul></div>
+    </div>
+    <h4>Avis</h4>
+    <div class="avis"><p>...</p></div>
+  </article>
+  -->
+
+  <article class="page day" data-date="2026-10-14">
+    <h2 class="tape blue">14/10/2026</h2>
+    <p class="meta">Branche : <code>develop</code></p>
+    <h4>Fait</h4>
+    <ul>
+      <li>Environnement Docker PrestaShop 8.2 initialisé — commit <code>9af9356</code>.</li>
+      <li>Catalogue : 3 catégories, 12 produits dont 3 à déclinaisons ; export dans <code>data/dump.sql</code> + images <code>data/img-products/</code> — commit <code>d345a30</code>. <em>(Corrigé le 20/10 : le catalogue définitif compte 2 catégories et 8 produits, dont 3 à déclinaisons — voir la page du 20/10.)</em></li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions</h4>
+      <ul><li class="todo-text">À compléter</li></ul>
+    </div>
+    <div class="cols">
+      <div><h4>Blocages</h4><ul><li class="todo-text">À compléter</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Fiabiliser l'environnement Docker (fait le 15/10).</li></ul></div>
+    </div>
+    <h4>Avis</h4>
+    <div class="avis"><p class="todo-text">À compléter</p></div>
+  </article>
+
+  <article class="page day" data-date="2026-10-15">
+    <h2 class="tape blue">15/10/2026</h2>
+    <p class="meta">Branche : <code>develop</code></p>
+    <h4>Fait</h4>
+    <ul>
+      <li>Docker : passage à MySQL 8, healthcheck de la base, ajout de Mailpit (:8025) et phpMyAdmin (:8081) — commit <code>436c760</code>.</li>
+      <li>Rédaction de <code>CLAUDE.md</code> : architecture du module, hooks, règles de sécurité, workflow Git, Definition of done.</li>
+      <li>Relecture du cahier des charges (<code>docs/cahier_des_charges.pdf</code>).</li>
+      <li>Décision tests : <code>tests/lint.sh</code> (<code>php -l</code>) + <code>tests/reinstall.sh</code> (install → uninstall → réinstall via <code>php bin/console prestashop:module</code>, commande vérifiée dans le conteneur) + scénarios manuels <code>tests/TESTS.md</code>. Pas de PHPUnit/Composer : trop lourd pour 2 semaines et contraire au choix « zéro dépendance ».</li>
+      <li>Création de ce journal : carnet à pages, feuille de route à cases à cocher, rendu vérifié par capture (Chrome headless dans Docker).</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions</h4>
+      <ul><li class="todo-text">À compléter</li></ul>
+    </div>
+    <div class="cols">
+      <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Branche <code>feature/module-skeleton</code> : install/uninstall, tables, transporteur, onglet admin, scripts de test.</li></ul></div>
+    </div>
+    <h4>Avis</h4>
+    <div class="avis"><p class="todo-text">À compléter</p></div>
+  </article>
+
+  <article class="page day" data-date="2026-10-16">
+    <h2 class="tape blue">16/10/2026</h2>
+    <p class="meta">Branches : <code>chore/docker-montage</code>, <code>docs/claude-md</code>, <code>feature/module-skeleton</code>, <code>feature/admin-slots</code>, <code>feature/checkout-slot</code></p>
+    <h4>Fait</h4>
+    <ul>
+      <li>Journal publié pour le manager via GitHub Pages (<code>develop</code> / <code>docs</code>) — PR #1.</li>
+      <li>Docker : healthcheck qui signale un montage vide (<code>unhealthy</code>) et <code>restart: "no"</code> — commit <code>7178fa4</code>, PR #2.</li>
+      <li><code>CLAUDE.md</code> versionné (consignes du projet) — commit <code>5c705dc</code>, PR #3.</li>
+      <li>Plan de développement du module validé, chaque hook vérifié dans le code de PS 8.2 (fichier:ligne).</li>
+      <li>Étape 1 — squelette du module : install/uninstall, 2 tables, transporteur « Retrait en boutique » gratuit référencé par <code>id_reference</code>, onglet Commandes &gt; Click &amp; Collect, 6 hooks enregistrés, <code>tests/lint.sh</code> et <code>tests/reinstall.sh</code> au vert (19 contrôles) — commit <code>eec3a5b</code>.</li>
+      <li>Vérifié : le transporteur est proposé au checkout à 0 € (simulation de panier), la page de l'onglet s'ouvre dans le back-office.</li>
+      <li>Étape 2 — créneaux en admin : ObjectModel <code>NkClickCollectSlot</code>, liste (date, heures, nombre de réservations, actif), tri par date puis heure, formulaire, validations serveur, suppression refusée si réservations — commit <code>99f9226</code>.</li>
+      <li>Vérifié par de vraies soumissions du formulaire : création et modification OK ; 10 cas invalides refusés avec le bon message (date passée, fin ≤ début, <code>25:00</code>, <code>abc</code>, champs vides…) et saisie conservée ; suppression d'un créneau réservé refusée ; jeton invalide bloqué ; lint et réinstallation au vert.</li>
+      <li>Étape 3 — créneau au checkout : liste des créneaux réservables sous « Retrait en boutique », validation serveur au clic sur « Continuer », réservation liée au panier de la session — commit <code>a0084a2</code>.</li>
+      <li>Vérifié par un vrai parcours client (client de test, curl) : 5 refus avec message (sans créneau, inexistant, inactif, déjà commencé, injection <code>abc'; DROP</code> neutralisée par <code>(int)</code>) ; choix valide → étape Paiement, une réservation, pré-cochée au retour, mise à jour sans doublon ; autre transporteur sans créneau accepté ; message « aucun créneau » après réinstallation.</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions</h4>
+      <ul>
+        <li><span class="err">Erreur :</span> dossiers <code>modules/nk_clickcollect</code> et <code>themes/atelier</code> vides dans le conteneur.<br>
+          Cause : conteneur relancé au démarrage de Windows avant la distribution WSL (<code>restart: unless-stopped</code>).<br>
+          <span class="ok">Résolution :</span> <code>docker compose up -d --force-recreate prestashop</code> + healthcheck et <code>restart: "no"</code>.</li>
+        <li><span class="err">Erreur :</span> transporteur du module absent des choix au checkout.<br>
+          Cause : un transporteur de module n'est retenu que si <code>need_range = 1</code> (filtre <code>is_module = 0 OR need_range = 1</code>).<br>
+          <span class="ok">Résolution :</span> <code>need_range = true</code> ; sans effet sur le prix car <code>is_free</code> renvoie 0 avant tout calcul (source : <code>classes/Carrier.php:570</code>, <code>classes/Cart.php:3787</code>).</li>
+        <li><span class="err">Erreur :</span> back-office en erreur 500 — <code>appParameters.php</code> introuvable.<br>
+          Cause : <code>bin/console</code> lancé en root a reconstruit <code>var/cache/dev</code> en root, illisible pour <code>www-data</code>.<br>
+          <span class="ok">Résolution :</span> <code>chown -R www-data:www-data var/cache</code> ; désormais <code>docker exec -u www-data … bin/console</code>.</li>
+        <li><span class="err">Erreur :</span> nom du module affiché « Click &amp;amp; Collect ».<br>
+          Cause : <code>$this-&gt;l()</code> applique <code>htmlspecialchars</code> (source : <code>classes/Translate.php:209</code>).<br>
+          <span class="ok">Résolution :</span> nom propre écrit sans <code>l()</code> (il n'a pas à être traduit).</li>
+        <li><span class="err">Erreur :</span> module absent du back-office après <code>git switch develop</code>.<br>
+          Cause : la branche n'avait pas encore le module ; Git a supprimé puis recréé le dossier, Docker restait branché sur l'ancien (<code>unhealthy</code>).<br>
+          <span class="ok">Résolution :</span> <code>docker compose up -d --force-recreate prestashop</code> ; réflexe <code>docker ps</code> après chaque changement de branche.</li>
+        <li><span class="err">Erreur :</span> messages admin avec le nom technique du champ (« Ce champ est obligatoire : slot_date »).<br>
+          Cause : le cœur range ses erreurs par nom de champ (<code>AdminController.php:3727</code>).<br>
+          <span class="ok">Résolution :</span> remplacement par le libellé (« Date ») dans <code>_childValidation()</code>.</li>
+        <li><span class="err">Erreur :</span> créneaux d'un même jour mal triés (10:00 avant 09:00).<br>
+          Cause : <code>_defaultOrderBy</code> n'accepte qu'une colonne.<br>
+          <span class="ok">Résolution :</span> surcharge de <code>getOrderByClause()</code> pour ajouter l'heure (<code>AdminController.php:3379</code>).</li>
+        <li><span class="err">Erreur :</span> sans validation, le client passait au paiement avec « Retrait en boutique » et <strong>aucun créneau</strong>.<br>
+          Cause : le cœur considère l'étape complète si le module ne dit rien.<br>
+          <span class="ok">Résolution :</span> <code>actionValidateStepComplete</code> met <code>completed = false</code> (passé par référence, <code>CheckoutDeliveryStep.php:204</code>) et ajoute un message.</li>
+        <li><span class="err">Piège évité :</span> MySQL tourne en UTC (12:29) alors que la boutique est en Europe/Paris (14:29).<br>
+          Cause : <code>NOW()</code> en SQL aurait proposé des créneaux déjà passés.<br>
+          <span class="ok">Résolution :</span> « maintenant » calculé en PHP (<code>date()</code>, <code>config/config.inc.php:150</code>) et passé à la requête.</li>
+      </ul>
+    </div>
+    <div class="cols">
+      <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Branche <code>feature/order-slot</code> : rattacher la réservation à la commande, rappel au client et créneau dans la fiche commande admin.</li></ul></div>
+    </div>
+    <h4>Avis</h4>
+    <div class="avis"><p class="todo-text">À compléter</p></div>
+  </article>
+
+  <article class="page day" data-date="2026-10-19">
+    <h2 class="tape blue">19/10/2026</h2>
+    <p class="meta">Branches : <code>fix/revue-etapes-1-3</code>, <code>feature/order-slot</code>, <code>docs/tests-readme</code>, <code>feature/theme-atelier</code></p>
+    <h4>Fait</h4>
+    <ul>
+      <li>Relecture du code des étapes 1 à 3 avec vérification dans le cœur de PS 8.2 (conteneur) : 3 bugs et 4 améliorations retenus, 3 « défauts » écartés après vérification.</li>
+      <li>Date passée refusée même écrite sans zéro (<code>2026-9-30</code>) : la date est normalisée en <code>AAAA-MM-JJ</code> avant la comparaison.</li>
+      <li>Une réservation sans commande (panier abandonné) n'est plus comptée : colonne « Réservations » et refus de suppression ne tiennent compte que des lignes avec <code>id_order</code>.</li>
+      <li>Créneau réservé : date et heures verrouillées (message « désactivez-le et créez-en un autre »), seul « actif » reste modifiable.</li>
+      <li><code>tests/reinstall.sh</code> détecte maintenant un échec de <code>prestashop:module</code>.</li>
+      <li>Règle « réservable » écrite à un seul endroit (<code>isBookable</code> réutilise <code>getBookableSlots</code>) ; <code>createCarrier</code> vérifie <code>addZone()</code> et <code>setGroups()</code> ; <code>formatTime</code> ne coupe plus <code>9:30:15</code> ; références de lignes corrigées dans les commentaires.</li>
+      <li>Vérifié : formulaire admin soumis avec curl (date et heure modifiées sur un créneau réservé refusées, ré-enregistrement identique et désactivation acceptés, suppression refusée), <code>isBookable</code> sur 4 cas, lint et <code>reinstall.sh</code> (19 contrôles) au vert, échec simulé détecté (code retour 1).</li>
+      <li>Étape 4 — créneau sur la commande : <code>actionValidateOrder</code> rattache la réservation à la commande si son transporteur a l'<code>id_reference</code> du Click &amp; Collect, sinon la supprime ; rappel du créneau sur la page de confirmation ; carte « Click &amp; Collect » dans la fiche commande admin — commit <code>d6d7fb9</code>.</li>
+      <li>Vérifié par de vrais parcours client (curl) : commande C&amp;C → <code>id_order</code> rempli ; changement de transporteur avant paiement → réservation orpheline supprimée ; autre transporteur → aucune réservation ni erreur ; transporteur dupliqué (nouvel <code>id_carrier</code>, même <code>id_reference</code>) → commande bien rattachée ; confirmation et fiche admin n'affichent le créneau que pour les commandes C&amp;C ; lint et <code>reinstall.sh</code> au vert.</li>
+      <li>Étape 5 — créneaux de démo (<code>sql/demo.php</code> : 14 créneaux sur 7 jours à partir de demain, dont 1 inactif, recréés à chaque installation), scénarios manuels <code>tests/TESTS.md</code> (T0 à T11), <code>README.md</code> du dépôt et du module — commit <code>b825e57</code>.</li>
+      <li>Vérifié : <code>reinstall.sh</code> contrôle maintenant les 14 créneaux à l'installation et à la réinstallation ; README suivi de zéro sur une pile Docker isolée (ports et volumes différents, supprimée ensuite) : installation du module, 14 créneaux, créneaux affichés (13 actifs, l'inactif absent), 4 refus avec message, commande C&amp;C avec confirmation, autre transporteur, changement de transporteur, liste admin et clé de sécurité invalide.</li>
+      <li>Partie boutique, étape 1 — thème enfant <code>atelier</code> créé et activé : <code>config/theme.yml</code> (<code>parent: classic</code>, <code>use_parent_assets: true</code>), <code>index.php</code> de protection dans chaque dossier, <code>preview.png</code>, polices Nunito et Open Sans embarquées en woff2 (88 Ko, licence SIL OFL conservée dans <code>assets/fonts/</code>) — aucun appel à un serveur externe à l'affichage.</li>
+      <li>Habillage global dans un seul <code>assets/css/custom.css</code> écrit à la main (chargé automatiquement après <code>theme.css</code>, priorité 1000) : jetons de la charte, boutons, champs, boutons radio, cartes, en-tête, catalogue, panier et tunnel, pied de page, mobile.</li>
+      <li>Quatre gabarits surchargés <strong>par héritage</strong> et non par copie : carte produit (<code>{block … append}</code> pour ajouter « Voir le produit »), en-tête, en-tête du tunnel de commande, pied de page (crédit FoodMart imposé par la licence du modèle). Le logo est le nom de la boutique en texte, écrit une fois dans <code>_partials/atelier-logo.tpl</code> et inclus par les deux en-têtes.</li>
+      <li>En-tête refait sur <strong>deux niveaux</strong> comme la maquette (logo · recherche · coordonnées · compte · panier, puis menu des rayons · « Retrait en boutique gratuit ») : les hooks <code>displayNav1</code>, <code>displayNav2</code> et <code>displayTop</code> sont appelés depuis un seul conteneur et rangés en CSS avec <code>order</code>, sans toucher à leur affectation en base.</li>
+      <li>Carrousel de démonstration (<code>ps_imageslider</code>, « Sample 1 ») retiré du hook <code>displayHome</code> et remplacé par le <strong>bandeau d'accueil</strong> : grand bloc de présentation sur 7 colonnes et deux cartes de rayon sur 5, grille CSS repliée en une colonne sous 1140 px, visuels tirés de nos propres photos produits (147 Ko au total dans <code>assets/img/</code>).</li>
+      <li>Carte produit alignée sur la maquette : photo posée dans un cadre gris avec marge, format par défaut sous le titre, prix, puis compteur de quantité et <strong>« Ajouter au panier »</strong>. L'ajout depuis la liste est un simple formulaire POST vers le contrôleur panier (jeton <code>$static_token</code> obligatoire, <code>CartController.php:282</code>) : <strong>aucune ligne de JavaScript</strong>, et les flèches « + / − » viennent de l'<code>input type="number"</code> du navigateur. Vérifié en curl : 2 pots ajoutés depuis la liste par un visiteur anonyme → panier à 13,80 €.</li>
+      <li>Deux cas traités à part sur la carte : un produit à déclinaisons affiche « Choisir le format » (on ne peut pas l'ajouter sans format choisi), un produit épuisé renvoie vers sa fiche (<code>$product.add_to_cart_url</code> vaut alors <code>null</code>). L'indicateur fiable est <code>id_product_attribute</code> (0 pour un produit simple) : <code>main_variants</code> reste vide, il ne sert qu'aux déclinaisons de type couleur affichées en liste.</li>
+      <li>Choix assumé : <strong>pas de note en étoiles</strong> sur les cartes, contrairement à la maquette dont le « 4.5 » est une donnée de démonstration. L'emplacement réel des avis (hook <code>displayProductListReviews</code>) est conservé et se remplira dès qu'un avis sera déposé. La disponibilité n'est pas affichée non plus : <code>availability_message</code> est vide dans les listes de produits, il n'est renseigné que sur la fiche.</li>
+      <li>Reste de la démonstration PrestaShop retiré du hook <code>displayHome</code> : <code>ps_banner</code> (« 20% OFF ON CLOTHES ») et <code>ps_customtext</code> (lorem ipsum), après <code>ps_imageslider</code>. Les modules ne sont pas désinstallés, la manœuvre se défait depuis le back-office.</li>
+      <li>Bloc « lettre d'information » remis à la forme de la maquette (panneau bleu clair en deux colonnes, intitulé au-dessus du champ, bouton sombre) par une surcharge de <code>ps_emailsubscription</code>. Tous les champs attendus par le module sont conservés, hook de consentement RGPD compris. Vérifié en curl : inscription acceptée, adresse enregistrée en base, puis supprimée.</li>
+      <li>« Aperçu rapide » au survol d'une carte : Classic le fait glisser depuis le bas sous forme de bandeau blanc, ce qui rogne la photo. Transformé en bouton blanc centré sur un voile sombre, en CSS uniquement — la fenêtre modale fonctionne donc toujours. Classic le masque sous 575 px (pas de survol au doigt) : comportement conservé.</li>
+      <li>Espace client, formulaires et fenêtres modales habillés (cartes de « Mon compte », intitulés, bouton « Afficher » du mot de passe, cases à cocher, croix de fermeture). Bouton <strong>« Précédent »</strong> ajouté à côté de « Continuer » dans le tunnel : son libellé vient d'un gabarit pour rester traduisible, et le <strong>seul fichier JS du thème</strong> (une quinzaine de lignes) le place et déclenche un clic sur le titre de l'étape précédente — le mécanisme de Classic, rien de réinventé.</li>
+      <li>Section « Nos rayons » intercalée <strong>entre</strong> « Produits populaires » et « Nouveaux produits ». Impossible depuis le gabarit, <code>{$HOOK_HOME}</code> étant rendu d'un seul tenant : ces sections étant des frères dans <code>#content</code>, le conteneur passe en colonne flex et un <code>order</code> suffit. Aucun module n'est déplacé.</li>
+      <li>Animations de l'accueil en <strong>CSS seul</strong> : apparition en fondu décalée, survols (photo qui respire, icône de rayon, flèche), retour au clic. Coupées par <code>prefers-reduced-motion</code>, qui est un réglage d'accessibilité.</li>
+      <li>Autres données de démonstration traduites : libellés des listes d'envies (figés en configuration par le module à l'installation), blocs de réassurance, message de confidentialité des données clients (<code>CUSTPRIV_MSG_AUTH</code>).</li>
+      <li>Mobile repris : nom de la boutique sur une seule ligne à toutes les largeurs (taille en <code>clamp()</code>), compteur de quantité du panier remis en ligne (Classic le construit en <code>float</code>, il s'empilait), ligne produit du panier réorganisée.</li>
+      <li>Accueil : « Produits populaires » remplacé par les <strong>vraies meilleures ventes</strong>. L'ancien bloc (<code>ps_featuredproducts</code>) affichait la catégorie Accueil, donc exactement les mêmes articles que « Nouveaux produits ». <code>ps_bestsellers</code> n'affichait rien parce que la table des ventes était vide : une vente n'est comptabilisée qu'au passage de la commande dans un état <em>payé</em> (<code>classes/order/OrderHistory.php:225</code>), or toutes les commandes de test restaient « en attente de paiement ». Historique d'achats varié créé <strong>par le vrai tunnel</strong> (5 produits différents), commandes validées, ligne résiduelle d'un produit de démonstration supprimée. Les deux sections affichent désormais des listes différentes : 6 produits classés par volume de ventes, et 8 produits classés par date d'ajout.</li>
+      <li>Données de la boutique corrigées : nom « L'Atelier des Saveurs », menu principal réparé (il pointait sur <code>CAT3,CAT6,CAT9</code>, catégories supprimées → <code>CAT10,CAT11</code>), titres des blocs du pied de page passés en français, adresse et téléphone fictifs, e-mail de la boutique neutralisé (le dépôt est public).</li>
+      <li>Vérifié : parcours client complet rejoué en curl avec le thème (connexion → panier → adresses → créneau → paiement) → commande créée et réservation rattachée (<code>id_order</code> rempli) ; refus sans créneau toujours actif ; <code>themes/classic</code> inchangé (même somme de contrôle <code>004126348a1d29ca9d530681475e13e3</code>, 264 fichiers) ; <code>lint.sh</code> au vert ; aucune nouvelle erreur dans <code>var/logs</code> ; captures 1280 px et 390 px de l'accueil, d'une catégorie, d'une fiche à déclinaisons, du panier et de l'étape livraison avec les créneaux.</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions</h4>
+      <ul>
+        <li><span class="err">Erreur :</span> une date passée saisie <code>2026-9-30</code> était acceptée.<br>
+          Cause : <code>Validate::isDate</code> accepte un mois sans zéro (<code>classes/Validate.php:757</code>) et la comparaison de chaînes donne <code>"2026-9-30" &gt; "2026-10-19"</code>.<br>
+          <span class="ok">Résolution :</span> <code>date('Y-m-d', strtotime($date))</code> avant de comparer.</li>
+        <li><span class="err">Erreur :</span> suppression d'un créneau refusée à tort, colonne « Réservations » trop haute.<br>
+          Cause : la réservation est créée dès l'étape livraison ; si le client change de transporteur ou abandonne, la ligne reste sans commande.<br>
+          <span class="ok">Résolution :</span> ne compter que <code>id_order IS NOT NULL</code> ; le nettoyage des lignes orphelines viendra avec <code>actionValidateOrder</code> (étape 4).</li>
+        <li><span class="err">Erreur :</span> <code>reinstall.sh</code> ne voyait pas un échec d'installation.<br>
+          Cause : <code>prestashop:module</code> renvoie toujours 0 (<code>ModuleCommand.php:154</code>).<br>
+          <span class="ok">Résolution :</span> analyse du message (« a réussi » / « succeeded »), affichage de l'erreur sinon.</li>
+        <li><span class="err">Erreur :</span> connexion au back-office impossible après restauration de <code>data/dump.sql</code> avec les identifiants du <code>.env</code>.<br>
+          Cause : le dump remplace toute la base, y compris le compte administrateur.<br>
+          <span class="ok">Résolution :</span> commande du README qui réinitialise l'employé 1 avec <code>ADMIN_MAIL</code> / <code>ADMIN_PASSWD</code> (<code>Hashing::hash</code>, <code>src/Core/Crypto/Hashing.php:90</code>).</li>
+        <li><span class="err">Erreur :</span> redirection vers le port 8080 quand la boutique tourne sur un autre port.<br>
+          Cause : le dump enregistre l'adresse <code>localhost:8080</code> (<code>ps_shop_url</code>).<br>
+          <span class="ok">Résolution :</span> README : garder <code>PS_PORT=8080</code>.</li>
+        <li><span class="err">Constat :</span> le module n'est pas dans le dump (daté du 14/10) : il faut l'installer après la restauration (<code>prestashop:module install nk_clickcollect</code>). Le dump contient 3 produits et 1 catégorie, et non 12 produits / 3 catégories comme noté plus haut : à corriger.</li>
+        <li><span class="err">Erreur :</span> après le merge de l'étape 2, <code>git switch develop</code> a échoué à supprimer des fichiers (<code>unable to unlink … Permission denied</code>), le <code>pull</code> a été interrompu, et le thème s'est retrouvé à moitié effacé — 46 fichiers sur l'hôte, 0 dans le conteneur, boutique servie sans son thème alors que le conteneur restait <code>healthy</code>.<br>
+          Cause : <strong>ma propre correction précédente</strong>. J'avais donné <code>themes/atelier/assets/cache/</code> à <code>www-data</code> ; le dossier étant monté depuis WSL, Git (qui tourne sous le compte utilisateur) ne pouvait plus y toucher. S'y est ajouté le piège connu du montage : après un <code>git switch</code>, Docker reste accroché à l'ancien dossier.<br>
+          <span class="ok">Résolution :</span> rendre le dossier au compte utilisateur, puis <code>docker compose up -d --force-recreate prestashop</code>. Surtout, le <code>chown</code> était <strong>inutile</strong> : le cœur ne fait un <code>mkdir</code> que si le dossier manque, et n'y écrit rien tant que la concaténation des assets est désactivée — le dossier était vide après huit heures d'utilisation. Il doit donc seulement exister. README corrigé en conséquence.<br>
+          <span class="ok">Leçon :</span> un correctif qui donne un fichier versionné à l'utilisateur du conteneur se paie plus tard, sur un montage partagé. Et vérifier qu'un conteneur <code>healthy</code> sert bien ce qu'on croit : comparer le nombre de fichiers des deux côtés.</li>
+        <li><span class="err">Erreur :</span> page blanche à l'activation du thème — <code>Failed to create "/var/www/html/themes/atelier/assets/cache/": mkdir(): Permission denied</code>.<br>
+          Cause : le cœur construit un <code>CccReducer</code> à chaque requête et crée ce dossier s'il manque (<code>classes/assets/CccReducer.php:52</code>, appelé depuis <code>classes/controller/FrontController.php:226</code>) ; or <code>themes/atelier/</code> est monté depuis WSL et appartient à mon compte, pas à <code>www-data</code>. Le dossier existe bien dans <code>themes/classic</code>, mais Classic vit dans le volume Docker.<br>
+          <span class="ok">Résolution :</span> créer <code>assets/cache/</code> dans le dépôt avec un <code>.gitignore</code> qui n'y garde que lui-même. (J'avais aussi donné le dossier à <code>www-data</code> : c'était inutile et cela a cassé Git plus tard — voir l'entrée ci-dessus.)</li>
+        <li><span class="err">Erreur :</span> plusieurs règles du thème restaient sans effet (gélule du panier grise, menu en majuscules).<br>
+          Cause : Classic écrit ces règles avec un identifiant (<code>#header .header-nav .blockcart</code>, <code>#header .header-top a[data-depth="0"]</code>) : un sélecteur à base de classes est moins spécifique, donc ignoré, même en étant chargé après.<br>
+          <span class="ok">Résolution :</span> reprendre le <code>#header</code> dans nos sélecteurs. Deux exceptions au <code>!important</code> : les classes utilitaires Bootstrap <code>text-uppercase</code>, déclarées elles-mêmes en <code>!important</code>, ne peuvent être annulées autrement.</li>
+        <li><span class="err">Erreur :</span> le panier devenait turquoise dès qu'il contenait un article.<br>
+          Cause : règle séparée de Classic sur l'état rempli, <code>#header .header-nav .cart-preview.active{background:#24b9d7}</code>.<br>
+          <span class="ok">Résolution :</span> couvrir les deux états (vide et rempli) dans la même règle.</li>
+        <li><span class="err">Erreur :</span> titres écrits « Confiture <strong>D</strong>e <strong>F</strong>raises » et sections en capitales accentuées.<br>
+          Cause : Classic applique <code>text-transform: capitalize</code> aux titres de produit et <code>text-transform: uppercase</code> à <code>.h1, .h2, .h3</code>.<br>
+          <span class="ok">Résolution :</span> une seule règle globale qui rétablit la casse normale, plutôt que des corrections page par page. Les majuscules accentuées se lisent mal en français.</li>
+        <li><span class="err">Erreur :</span> le logo chevauchait les icônes sur mobile.<br>
+          Cause : Classic dispose la rangée mobile de l'en-tête en <code>float</code> (<code>.float-xs-left</code> / <code>.float-xs-right</code>) ; le logo, qui suit, passe dessous.<br>
+          <span class="ok">Résolution :</span> rangée passée en <code>flex</code> avec <code>order</code>, sans toucher au balisage de Classic.</li>
+        <li><span class="err">Erreur :</span> le lien « Toutes les meilleures ventes » renvoyait une 404 vers <code>/meilleures ventes</code>.<br>
+          Cause : l'URL simplifiée de cette page contenait une <strong>espace</strong> dans <code>ps_meta_lang</code> — une donnée de l'installation française, pas un défaut du thème.<br>
+          <span class="ok">Résolution :</span> normalisation par <code>Tools::str2url()</code> ; corrigeable aussi au back-office (Préférences &gt; SEO et URL).</li>
+        <li><span class="err">Erreur :</span> <code>OrderHistory</code> en ligne de commande : <code>ComputingPrecision::getPrecision(): Argument #1 must be of type int, null given</code>.<br>
+          Cause : en CLI le contexte n'a ni boutique ni devise, et le recalcul de la facture en a besoin (<code>classes/Context.php:557</code>).<br>
+          <span class="ok">Résolution :</span> initialiser <code>Context</code> (shop, language, currency, country, employee) avant d'appeler l'API. Au passage, la première commande avait été comptabilisée <em>avant</em> l'erreur mais sans sa ligne d'historique : complétée ensuite, sans double comptage (<code>changeIdOrderState</code> ne recompte pas si l'état courant est déjà payé).</li>
+        <li><span class="err">Erreur :</span> en-tête replié sur trois lignes dès qu'un client était connecté.<br>
+          Cause : le conteneur était un <code>flex</code> avec <code>flex-wrap</code> ; le nom du client s'ajoute aux liens du compte, la somme des largeurs dépassait, et le bloc « compte + panier » basculait sur sa propre ligne.<br>
+          <span class="ok">Résolution :</span> conteneur passé en <strong>grille CSS</strong> avec des zones nommées (<code>grid-template-areas</code>) : le placement ne dépend plus de la largeur des contenus.</li>
+        <li><span class="err">Erreur :</span> le panneau de la lettre d'information restait étroit et son bouton chevauchait le texte.<br>
+          Cause : trois contraintes de Classic — <code>max-width: 50rem</code> sur <code>.block_newsletter</code>, un bouton d'envoi en <code>position: absolute</code> (hérité de la barre de recherche, qu'il partage), et la classe <code>col-12</code> qui <strong>n'existe pas</strong> : Classic est en Bootstrap 4 <em>alpha</em>, où la classe sans point de rupture s'écrit <code>col-xs-12</code>.<br>
+          <span class="ok">Résolution :</span> les trois remises à zéro dans <code>custom.css</code>, au niveau de spécificité imposé par Classic, et <code>col-xs-12</code> dans le gabarit.</li>
+        <li><span class="err">Erreur :</span> le bouton « Ajouter au panier » dépassait du cadre de la carte.<br>
+          Cause : <code>white-space: nowrap</code> empêche un élément flex de descendre sous la largeur de son texte, et une carte de la grille d'accueil ne laisse qu'environ 218 px utiles.<br>
+          <span class="ok">Résolution :</span> <code>min-width: 0</code> (qui lève la largeur minimale implicite d'un élément flex), retour à la ligne autorisé, et libellé visible raccourci en « Ajouter » avec l'intitulé complet en <code>aria-label</code> pour les lecteurs d'écran.</li>
+        <li><span class="err">Astuce :</span> le gabarit de <code>ps_contactinfo</code> écrit « Appelez-nous : » en texte brut, hors de toute balise — impossible à styler séparément du numéro, a priori.<br>
+          <span class="ok">Résolution :</span> dans un conteneur <code>flex</code>, un nœud de texte devient un élément à part entière : passer <code>#contact-link</code> en colonne suffit à empiler le libellé et le numéro, sans surcharger le gabarit du module.</li>
+        <li><span class="err">Piège évité :</span> j'avais conclu du code du cœur qu'aucun bouton « favoris » n'apparaissait sur les cartes produit (le hook <code>displayProductActions</code> n'est appelé que dans <code>catalog/_partials/product-add-to-cart.tpl:64</code>, donc sur la fiche). La capture d'écran montrait pourtant des cœurs : <code>blockwishlist</code> les injecte en JavaScript (<code>public/product.bundle.js</code>).<br>
+          <span class="ok">Leçon :</span> lire le code du cœur ne suffit pas quand un module agit côté navigateur — il faut regarder la page rendue.</li>
+        <li><span class="err">Piège évité :</span> sur les captures faites depuis un fichier HTML enregistré (<code>file://</code>), les icônes Material s'affichent en toutes lettres (« shopping_cart », « mode_edit ») et semblent se chevaucher : la police d'icônes n'est pas chargée. Ce n'est pas un défaut du thème, les pages servies en HTTP sont correctes.</li>
+        <li><span class="err">Piège évité :</span> trois « défauts » signalés par une première relecture faite sans le conteneur étaient faux (<code>refuseStep</code> par référence fonctionne, guillemets doubles en SQL sans risque, tri sur la colonne calculée sans erreur).<br>
+          <span class="ok">Leçon :</span> vérifier dans le code réel du cœur avant de corriger.</li>
+      </ul>
+    </div>
+    <div class="cols">
+      <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Accueil : bandeau, cartes de catégories, sections « à la une » et « nouveautés », réassurance (<code>blockreassurance</code> à configurer, ses blocs sont encore en anglais), pied de page en colonnes.</li><li>Puis dump nettoyé + README validé sur pile isolée, vidéo de démonstration, bilan personnel, PR finale <code>develop</code> → <code>main</code>.</li></ul></div>
+    </div>
+    <h4>Avis</h4>
+    <div class="avis"><p class="todo-text">À compléter</p></div>
+  </article>
+
+  <article class="page day" data-date="2026-10-20">
+    <h2 class="tape blue">20/10/2026</h2>
+    <p class="meta">Branches : <code>fix/revue-theme-atelier</code>, <code>fix/revue-structure-theme</code></p>
+    <h4>Fait</h4>
+    <ul>
+      <li>Revue du thème enfant : 7 constats, tous traités.</li>
+      <li><strong>Reproductibilité (le plus important)</strong> : <code>global_settings</code> est désormais déclaré dans <code>config/theme.yml</code> au lieu d'être hérité de Classic. Vérifié en simulant une restauration du dump : avant activation, <code>displayHome</code> portait 7 modules dont le carrousel et le lorem ipsum de démonstration ; après <code>prestashop:theme:enable atelier</code>, il n'en reste que <code>ps_bestsellers</code> et <code>ps_newproducts</code>, et les 6 hooks du module Click &amp; Collect sont intacts.</li>
+      <li>Bouton « Précédent » du tunnel : le script est rejouable et recrée le bouton après un rechargement partiel.</li>
+      <li>Identifiants dupliqués sur les champs quantité supprimés (un produit peut figurer dans deux listes d'une même page) ; <code>aria-label</code> à la place du <code>&lt;label for&gt;</code>.</li>
+      <li>Trois correctifs mineurs : <code>aria-labelledby</code> du bloc newsletter qui annulait son propre intitulé, total du panier de l'en-tête remplacé par le sous-total des produits, commentaire périmé du <code>.gitignore</code>. Couplage aux identifiants de catégorie documenté dans le gabarit et le README.</li>
+      <li>Vérifié : parcours complet rejoué (commande 39), 5 pages en 200, <code>themes/classic</code> inchangé, aucune erreur dans <code>var/logs</code>, montage Docker cohérent (46 fichiers des deux côtés).</li>
+      <li><strong>Seconde revue</strong> (sous-agent, vérifications dans le cœur et par rendu réel) : 11 constats, tous traités. Deux étaient graves et venaient de moi.</li>
+      <li>Le plus grave : <strong>le tunnel n'avait plus d'en-tête sur desktop</strong>. En remontant le contact et le panier au niveau 1, j'avais masqué <code>.header-nav</code> au-dessus de 768 px — or le tunnel a son propre en-tête, où c'est justement <code>header_nav</code> qui porte le logo, son <code>header_top</code> étant déjà en <code>hidden-md-up</code>. Les deux moitiés disparaissaient ensemble. Corrigé par <code>body:not(#checkout)</code>.</li>
+      <li>Barre d'étapes désalignée : deux règles de Classic (<code>-complete:first-of-type</code> et <code>-current + .checkout-step</code>, spécificité 1-4-2) décalaient les pastilles 1 et 4 et dessinaient un filet parasite. Annulées au même niveau de spécificité.</li>
+      <li>Ordre des sections de l'accueil rendu robuste : il reposait sur <code>:nth-of-type</code>, or <code>ps_bestsellers</code> ne rend aucun balisage tant qu'aucune vente n'est comptabilisée — et <code>ps_product_sale</code> est <strong>vide dans le dump versionné</strong>. Sur une installation neuve, « Nos rayons » serait passé après les nouveautés. Remplacé par <code>:last-of-type</code>.</li>
+      <li>README remis d'équerre : il annonçait encore « <code>global_settings</code> absent », « 4 gabarits » et « ~15 lignes de JS », trois affirmations devenues fausses.</li>
+      <li>Bouton « Précédent » rendu fonctionnel même sans « Continuer » (étape Livraison sans transporteur disponible) ; derniers restes cyan de Classic repeints, dont l'adresse sélectionnée au tunnel ; majuscules résiduelles sur <code>/nous-contacter</code> et le plan du site ; bloc CSS dupliqué et sélecteur mort supprimés.</li>
+      <li><strong>Pages de catégorie</strong> : nouvelle bannière avec image de fond (couverture de la catégorie, gérée au back-office) et titre posé dessus, à la place de la carte dans une carte qui réservait 220 px de vide. Tuiles de sous-catégories refaites, avec un pictogramme quand la catégorie n'a pas d'image.</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions</h4>
+      <ul>
+        <li><span class="err">Erreur :</span> activer le thème ramenait les blocs de démonstration sur l'accueil.<br>
+          Cause : omettre <code>global_settings</code> fait hériter de la liste de Classic, et <code>ThemeManager::enable()</code> la <strong>rejoue</strong> à chaque activation (<code>ThemeManager.php:258</code>). Le retrait que j'avais fait en base ne survivait donc pas à une installation suivie depuis le README.<br>
+          <span class="ok">Résolution :</span> déclarer <code>global_settings</code> en entier. Le mécanisme joue alors en notre faveur : tout hook déclaré est <strong>vidé puis reconstruit</strong> (<code>HookConfigurator.php:75</code>, <code>HookRepository::persistHooksConfiguration:147</code>), et un hook absent de la liste n'est pas touché — ce qui préserve les hooks du module.<br>
+          <span class="ok">Leçon :</span> hériter n'est pas neutre quand la valeur héritée est <em>rejouée</em> par le cœur.</li>
+        <li><span class="err">Erreur :</span> le bouton « Précédent » disparaissait quand le client changeait de pays à l'étape Adresses.<br>
+          Cause : vérifié dans le HTML rendu — <code>.continue</code> est à l'intérieur de <code>&lt;div class="js-address-form"&gt;</code>, que <code>themes/core.js</code> remplace entièrement. En y déplaçant mon bouton, je le faisais entrer dans la zone détruite.<br>
+          <span class="ok">Résolution :</span> réinstallation sur <code>updatedAddressForm</code> et <code>updatedDeliveryForm</code>, avec recréation du bouton à partir du libellé relevé dans le gabarit — pour qu'aucun texte ne soit écrit en dur dans le JavaScript.</li>
+      </ul>
+    </div>
+    <h4>Fait — étape 4 : données reproductibles</h4>
+    <ul>
+      <li><code>data/dump.sql</code> régénéré depuis une <strong>copie temporaire</strong> de la base, nettoyée puis supprimée : la base de développement n'a jamais été modifiée. Il contient désormais la réalité — <strong>8 produits, 2 catégories, 3 produits à déclinaisons</strong> — au lieu des 3 produits et 1 catégorie d'un dump daté du 14/10.</li>
+      <li><strong>Plus aucune donnée personnelle</strong> : quatre emplacements neutralisés (compte administrateur, <code>PS_LOGS_EMAIL_RECEIVERS</code>, <code>MA_MERCHANT_MAILS</code> et les deux lignes de <code>ps_contact</code>). L'empreinte du mot de passe admin est remplacée par une valeur invalide, que le README réinitialise. Commandes, clients et paniers vidés.</li>
+      <li><code>data/img-products</code> ramené de <strong>293 à 45 fichiers</strong> : la quasi-totalité étaient les images par défaut des 40 langues de PrestaShop, déjà présentes après une installation neuve. Ajout de <code>data/img-categories</code> (6 fichiers) pour les bannières, qui n'était pas prévu.</li>
+      <li><strong>Validé sur une pile Docker isolée</strong>, README suivi depuis zéro : installation automatique, restauration, réinitialisation de l'administrateur, installation du module, activation du thème. Résultat conforme — thème appliqué, 14 créneaux générés à l'installation donc dans le futur, 6 meilleures ventes conservées, aucun bloc de démonstration, back-office accessible avec l'onglet Click &amp; Collect. Parcours client complet rejoué avec un compte créé de zéro : refus correct sans créneau, puis commande avec le créneau rattaché. Pile démontée ensuite, pile de développement intacte (42 commandes, 26 réservations retrouvées).</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions — étape 4</h4>
+      <ul>
+        <li><span class="err">Décision :</span> le dump ne contient <strong>pas</strong> le module.<br>
+          Raison : il crée ses 14 créneaux de démonstration à l'installation, « 7 jours à partir de demain ». Livré dans le dump, ils seraient figés à la date d'export et périmés dès le mois suivant — la démonstration du Click &amp; Collect tomberait à plat. Le README l'installe donc après la restauration.</li>
+        <li><span class="err">Décision :</span> la table <code>ps_product_sale</code> est <strong>conservée</strong> alors que toutes les commandes sont supprimées.<br>
+          Raison : c'est un agrégat, pas une commande, et c'est elle qui alimente « Meilleures ventes ». Sans elle, <code>ps_bestsellers</code> ne rend aucun balisage et l'accueil perd une section.</li>
+        <li><span class="err">Erreur :</span> <code>Unknown column 'id_module'</code> en nettoyant <code>ps_module_access</code>.<br>
+          Cause : en PS 8, les droits ne passent plus par <code>id_module</code> ni <code>id_tab</code> mais par des <strong>rôles d'autorisation</strong> (<code>ps_authorization_role</code>). Le module laissait 8 rôles derrière lui.<br>
+          <span class="ok">Résolution :</span> suppression via <code>slug LIKE 'ROLE_MOD_MODULE_NK_CLICKCOLLECT%'</code> et son équivalent pour l'onglet.</li>
+        <li><span class="err">Trouvé pendant le test :</span> en appelant directement <code>/module/ps_checkpayment/validation</code> après avoir saisi une adresse, on obtient une commande Click &amp; Collect <strong>sans créneau</strong>.<br>
+          Cause : la validation s'appuie sur <code>actionValidateStepComplete</code>, qui ne se déclenche que si l'étape Livraison est soumise. Le contrôleur de paiement ne vérifie que le client et les adresses (<code>validation.php:42</code>), et le transporteur est affecté d'office puisqu'un seul est disponible.<br>
+          <span class="ok">Décision :</span> documenté dans les limites connues du README plutôt que corrigé. Bloquer demanderait un contrôle <em>avant</em> la création de la commande, donc un hook hors du périmètre ; <code>actionValidateOrder</code> intervient trop tard et ne pourrait que signaler. Ce n'est pas une régression : la limite existe depuis l'origine.<br>
+          <span class="ok">Leçon :</span> c'est un script de test cassé qui l'a révélée — une erreur de manipulation vaut parfois un audit.</li>
+      </ul>
+    </div>
+    <h4>Fait — pied de page</h4>
+    <ul>
+      <li>Colonne d'identité ajoutée en tête du pied de page (logo, phrase de présentation, lien « Retrait en boutique gratuit »), comme la première colonne de la maquette. Le logo réutilise le gabarit écrit une seule fois pour les deux en-têtes.</li>
+      <li>Disposition en grille : la rangée n'a que <strong>quatre enfants directs</strong> — notre colonne, <code>ps_linklist</code> qui groupe ses DEUX listes dans une seule cellule, <code>ps_customeraccountlinks</code> et <code>ps_contactinfo</code>. Ma première grille en réservait cinq, d'où une colonne vide et deux listes à l'étroit. Corrigé : quatre pistes dont celle de <code>ps_linklist</code> doublée, avec une sous-grille à l'intérieur.</li>
+      <li>Barre du bas séparée par un filet, copyright et crédit FoodMart sur une ligne.</li>
+      <li>Page CMS « A propos » corrigée en « À propos » (accent manquant depuis l'installation).</li>
+      <li>Pas de réseaux sociaux : <code>ps_socialfollow</code> n'est pas configuré et ne rend rien. Inventer des comptes aurait été malhonnête.</li>
+      <li>Vérifié : 7 pages en 200, parcours complet rejoué (commande 43), crédit FoodMart toujours présent, <code>themes/classic</code> inchangé, <code>lint.sh</code> vert, aucune erreur dans les logs, rendu contrôlé en 1280 et 390 px.</li>
+    </ul>
+    <h4>Fait — revue de structure du thème et navigation mobile</h4>
+    <ul>
+      <li>Troisième revue du thème, chaque affirmation <strong>revérifiée sur les pages servies</strong> : sur 10 constats, 6 vrais, 3 en partie, 1 faux (une classe CSS dite « sans règle » en avait une), et un défaut plus visible que tous les autres, absent de l'audit. Tout est corrigé : <code class="proof">cfbdfca</code>.</li>
+      <li>Fil d'Ariane de nouveau visible à partir de la page 2 d'une catégorie (<code>:has(.atelier-category-hero)</code>), bouton « Filtrer » mobile retiré, page Contact revenue en <code>layout-left-column</code> avec la colonne des coordonnées, un seul <code>&lt;h1&gt;</code> sur l'accueil.</li>
+      <li><strong>Navigation mobile</strong> : en-tête réduit au pictogramme du logo et à la recherche, menu burger supprimé, barre d'icônes fixée en bas (Accueil, Boutique, Retrait, compte, panier) avec libellés en <code>title</code> et <code>aria-label</code>. Pied de page décollé des bords : <code class="proof">70654b4</code>.</li>
+      <li>Vérifié en rendu Chrome headless à 390 px (visiteur et client connecté, panier rempli) et à 1280 px (desktop inchangé), tunnel rejoué jusqu'à l'étape Livraison, 6 hooks du module intacts après <code>prestashop:theme:enable atelier</code>.</li>
+    </ul>
+    <div class="postit">
+      <h4>Erreurs &amp; résolutions — revue de structure</h4>
+      <ul>
+        <li><span class="err">Erreur :</span> trois boutons « Précédent » à l'étape Adresses.<br>
+          Cause : <code>custom.js</code> créait un bouton pour <em>toute</em> étape sans « Continuer », y compris les étapes encore inaccessibles (<code>unreachable.tpl</code>, sans bloc <code>.content</code>), et le posait dans la <code>&lt;section&gt;</code>. Or les sections sont en <code>display: contents</code> : le bouton devenait une case visible de la grille.<br>
+          <span class="ok">Résolution :</span> ne recréer un bouton que dans une étape dont le gabarit en avait posé un, et toujours dans <code>.content</code>, que Classic masque hors de l'étape courante. <code>onclick =</code> au lieu d'<code>addEventListener</code> pour ne plus empiler d'écouteurs.<br>
+          <span class="ok">Leçon :</span> ce défaut n'a été vu qu'en <strong>affichant</strong> le tunnel ; la lecture du code seule l'avait manqué.</li>
+        <li><span class="err">Erreur :</span> sur mobile, le bouton « Filtrer » de la catégorie Accueil vidait la page.<br>
+          Cause : la catégorie est en pleine largeur, donc sans colonne <code>displayLeftColumn</code> ni <code>#search_filters_wrapper</code> ; le script de Classic masquait le contenu et le pied de page pour afficher des filtres absents.<br>
+          <span class="ok">Résolution :</span> bouton masqué sur les pages de catégorie, choix documenté dans <code>theme.yml</code>.</li>
+        <li><span class="err">Piège :</span> le menu des rayons, le compte et le panier n'ont pas été recopiés dans la barre mobile.<br>
+          Raison : le JS de Classic échange déjà le contenu de chaque <code>#_desktop_xxx</code> avec son jumeau <code>#_mobile_xxx</code>. Il a suffi de placer <code>#_mobile_user_info</code> et <code>#_mobile_cart</code> dans la barre ; le panier y reste à jour en AJAX.</li>
+      </ul>
+    </div>
+    <div class="cols">
+      <div><h4>Blocages</h4><ul><li>Aucun</li></ul></div>
+      <div><h4>Prochaine étape</h4><ul><li>Vidéo de démonstration (5 à 10 min), bilan personnel, PR finale <code>develop</code> → <code>main</code>.</li><li>En attente de Sarobidy : photos de la tapenade et de la fleur de sel, vraies bannières de catégorie.</li></ul></div>
+    </div>
+    <h4>Avis</h4>
+    <div class="avis"><p class="todo-text">À compléter</p></div>
+  </article>
+
+</main>
+
+<nav class="pager" aria-label="Pages du journal">
+  <button type="button" id="prev">‹ <span class="label">Précédente</span></button>
+  <div class="middle">
+    <span id="page-label"></span>
+    <select id="goto" aria-label="Aller à la page"></select>
+  </div>
+  <button type="button" id="next"><span class="label">Suivante</span> ›</button>
+</nav>
+
+<script>
+  // --- Feuille de route : barre de progression globale + tampon de chaque étape, calculés depuis les cases.
+  const tasks = document.querySelectorAll('.task');
+  const done = document.querySelectorAll('.task.done').length;
+  const percent = Math.round(done / tasks.length * 100);
+  document.getElementById('bar-fill').style.width = percent + '%';
+  document.getElementById('bar-label').textContent = done + ' / ' + tasks.length + ' · ' + percent + ' %';
+
+  document.querySelectorAll('.phase').forEach(phase => {
+    const total = phase.querySelectorAll('.task').length;
+    const ok = phase.querySelectorAll('.task.done').length;
+    const status = ok === 0 ? ['todo', 'à faire'] : ok === total ? ['done', 'fait'] : ['doing', 'en cours'];
+    const stamp = document.createElement('span');
+    stamp.className = 'stamp ' + status[0];
+    stamp.textContent = status[1];
+    phase.querySelector('.meta').appendChild(stamp);
+  });
+
+  // --- Carnet : une page visible à la fois. Pages, sommaire et numéros sont déduits du HTML.
+  const pages = [...document.querySelectorAll('.page')];
+  const titleOf = page => page.dataset.title || page.querySelector('.tape').textContent;
+  const goto = document.getElementById('goto');
+  const toc = document.getElementById('toc');
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  const label = document.getElementById('page-label');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let index = -1;
+  let turning = false;
+
+  pages.forEach((page, i) => {
+    if (page.dataset.date) page.id = page.dataset.date;
+    page.dataset.num = i + 1;
+    goto.add(new Option(titleOf(page), i));
+    if (i > 0) {
+      const link = document.createElement('a');
+      link.href = '#' + page.id;
+      link.textContent = titleOf(page);
+      link.addEventListener('click', e => { e.preventDefault(); show(i); });
+      toc.appendChild(document.createElement('li')).appendChild(link);
+    }
+  });
+
+  function show(i) {
+    if (i < 0 || i >= pages.length || i === index || turning) return;
+    const old = pages[index];
+    const page = pages[i];
+    if (old && !reduceMotion) {
+      // Vers l'avant : l'ancienne page pivote et découvre la nouvelle. Vers l'arrière : la nouvelle revient par-dessus.
+      turning = true;
+      const moving = i > index ? old : page;
+      page.classList.add('current');
+      moving.classList.add(i > index ? 'out' : 'in');
+      moving.addEventListener('animationend', () => {
+        moving.classList.remove('out', 'in');
+        old.classList.remove('current');
+        turning = false;
+      }, { once: true });
+    } else {
+      if (old) old.classList.remove('current');
+      page.classList.add('current');
+    }
+    index = i;
+    prev.disabled = i === 0;
+    next.disabled = i === pages.length - 1;
+    label.textContent = 'Page ' + (i + 1) + ' / ' + pages.length;
+    goto.value = i;
+    history.replaceState(null, '', '#' + page.id);
+    page.scrollTop = 0;
+  }
+
+  prev.addEventListener('click', () => show(index - 1));
+  next.addEventListener('click', () => show(index + 1));
+  goto.addEventListener('change', () => show(Number(goto.value)));
+  document.addEventListener('keydown', e => {
+    if (e.target.closest('select')) return;
+    if (e.key === 'ArrowRight') show(index + 1);
+    if (e.key === 'ArrowLeft') show(index - 1);
+  });
+
+  // Glisser le doigt (mobile) : seulement un geste surtout horizontal, pour ne pas gêner le défilement.
+  let x0 = 0, y0 = 0;
+  const book = document.getElementById('book');
+  book.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  book.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - x0;
+    const dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) show(index + (dx < 0 ? 1 : -1));
+  });
+
+  // Page de départ : celle de l'adresse (#2026-10-15) si elle existe, sinon la couverture.
+  const start = pages.findIndex(page => '#' + page.id === location.hash);
+  show(start >= 0 ? start : 0);
+</script>
+</body>
+</html>
